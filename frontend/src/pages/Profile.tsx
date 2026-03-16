@@ -13,7 +13,7 @@ const formatDate = (iso: string) =>
 
 // ── Sub-componente: tarjeta de dato ───────────
 const InfoRow = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) => (
-  <div className="flex items-center gap-4 p-4 bg-slate-800/40 rounded-xl border border-slate-700/50">
+  <div className="flex items-center gap-4 p-4 bg-slate-800/40 rounded-xl border border-slate-700/50 backdrop-blur-sm hover:bg-slate-800/60 transition-all duration-300">
     <div className="bg-slate-700/60 p-2.5 rounded-lg text-slate-400 flex-shrink-0">
       {icon}
     </div>
@@ -43,7 +43,7 @@ const PasswordInput = ({
         onChange={onChange}
         placeholder={placeholder ?? '••••••••'}
         autoComplete={autoComplete}
-        className="w-full bg-slate-800 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-11 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors"
+        className="w-full bg-slate-800/60 border border-slate-700 text-white text-sm rounded-xl pl-10 pr-11 py-2.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 placeholder-slate-600 transition-colors backdrop-blur-sm"
       />
       <button type="button" onClick={onToggle} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors">
         {show ? <EyeOff size={15} /> : <Eye size={15} />}
@@ -118,25 +118,31 @@ const Profile = () => {
     }
   };
 
-  // Initiales del avatar
+  // Iniciales del avatar
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-slate-950 py-8 px-4 relative overflow-hidden">
+      {/* Fondo con patrón de grid sutil */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
+      
+      {/* Degradado radial para profundidad */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-blue-950/20 via-transparent to-slate-900/20 pointer-events-none" />
+      
+      <div className="max-w-2xl mx-auto space-y-6 relative z-10">
 
         {/* ── Header ─────────────────────────── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mi Perfil</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Administra tu información personal</p>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Mi Perfil</h1>
+            <p className="text-slate-400 text-sm mt-0.5">Administra tu información personal</p>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 bg-slate-800/90 border border-slate-700 text-slate-300 hover:text-white hover:border-slate-600 text-sm font-medium px-4 py-2 rounded-xl transition-colors shadow-lg backdrop-blur-sm disabled:opacity-50"
           >
             <RefreshCw size={15} className={isRefreshing ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Actualizar</span>
@@ -144,25 +150,21 @@ const Profile = () => {
         </div>
 
         {/* ── Tarjeta de perfil ───────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          {/* Banner */}
-          <div className="h-24 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 relative">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.15)_1px,transparent_1px)] bg-[size:32px_32px]" />
-          </div>
+        <div className="bg-slate-900/90 backdrop-blur-sm rounded-2xl border border-slate-800/80 shadow-2xl overflow-hidden">
 
           <div className="px-6 pb-6">
             {/* Avatar */}
-            <div className="flex items-end gap-4 -mt-10 mb-6">
-              <div className="w-20 h-20 rounded-2xl bg-blue-600 border-4 border-white shadow-lg flex items-center justify-center flex-shrink-0">
+            <div className="flex items-center gap-4 mb-4 mt-4">
+              <div className="w-20 h-20 rounded-2xl bg-blue-600 border-4 border-slate-900 shadow-xl flex items-center justify-center flex-shrink-0">
                 <span className="text-white font-bold text-2xl tracking-tight">{initials}</span>
               </div>
               <div className="pb-1">
-                <h2 className="text-xl font-bold text-slate-900 leading-tight">
+                <h2 className="text-xl font-bold text-white leading-tight">
                   {user?.name ?? '—'}
                 </h2>
                 <div className="flex items-center gap-1.5 mt-1">
-                  <ShieldCheck size={14} className="text-emerald-500" />
-                  <span className="text-xs text-emerald-600 font-medium">Cuenta verificada</span>
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  <span className="text-xs text-emerald-400/90 font-medium backdrop-blur-sm">Cuenta verificada</span>
                 </div>
               </div>
             </div>
@@ -186,26 +188,26 @@ const Profile = () => {
         </div>
 
         {/* ── Cambiar contraseña ─────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+        <div className="bg-slate-900/90 backdrop-blur-sm rounded-2xl border border-slate-800/80 shadow-2xl p-6">
           <div className="flex items-center gap-3 mb-6">
-            <div className="bg-blue-50 p-2.5 rounded-xl">
-              <KeyRound size={18} className="text-blue-600" />
+            <div className="bg-blue-600/20 p-2.5 rounded-xl border border-blue-500/20">
+              <KeyRound size={18} className="text-blue-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-slate-900">Cambiar contraseña</h3>
-              <p className="text-xs text-slate-500 mt-0.5">Actualiza tu contraseña de acceso</p>
+              <h3 className="font-semibold text-white">Cambiar contraseña</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Actualiza tu contraseña de acceso</p>
             </div>
           </div>
 
           {/* Feedback */}
           {pwError && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3 mb-5">
+            <div className="flex items-center gap-2 bg-red-950/50 border border-red-800/50 text-red-400 text-sm rounded-xl px-4 py-3 mb-5 backdrop-blur-sm">
               <AlertCircle size={16} className="flex-shrink-0" />
               <span>{pwError}</span>
             </div>
           )}
           {pwSuccess && (
-            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-xl px-4 py-3 mb-5">
+            <div className="flex items-center gap-2 bg-emerald-950/50 border border-emerald-800/50 text-emerald-400 text-sm rounded-xl px-4 py-3 mb-5 backdrop-blur-sm">
               <CheckCircle2 size={16} className="flex-shrink-0" />
               <span>{pwSuccess}</span>
             </div>
@@ -244,7 +246,7 @@ const Profile = () => {
               <button
                 type="submit"
                 disabled={pwLoading}
-                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl px-8 py-2.5 transition-colors flex items-center justify-center gap-2 shadow-md shadow-blue-900/20"
+                className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-xl px-8 py-2.5 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-blue-900/30"
               >
                 {pwLoading ? (
                   <><Loader2 size={15} className="animate-spin" /> Guardando...</>
