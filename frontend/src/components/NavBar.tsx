@@ -1,38 +1,25 @@
 import { useState, useEffect } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { logout, getUser } from "../utils/authStorage";
+import { useAuth } from "../context/AuthContext";
 import {
-  HomeIcon,
-  UsersIcon,
-  BuildingStorefrontIcon,
-  ClipboardDocumentListIcon,
-  TruckIcon,
-  ArrowLeftOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  CubeIcon,
-  UserCircleIcon,
-  BookOpenIcon,
-} from "@heroicons/react/24/outline"; // ahora es Lucide React
+  Home, LayoutDashboard, BarChart3, History,
+  Activity, User, LogOut, Menu, X, Zap, Loader2
+} from "lucide-react";
 
 const NavBar = () => {
   const navigate = useNavigate();
-  const user = getUser();
+  const { user, logout } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isHoverEnabled, setIsHoverEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detectar si estamos en móvil
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setIsExpanded(false);
-        setIsHoverEnabled(false);
-      }
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) { setIsExpanded(false); setIsHoverEnabled(false); }
     };
-
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -43,270 +30,131 @@ const NavBar = () => {
     setIsHoverEnabled(!isHoverEnabled);
   };
 
-  const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
+  const handleLogout = async () => {
     setIsLoggingOut(true);
-    
     try {
       await logout();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error during logout:', error);
-      localStorage.clear();
-      navigate('/login');
+      navigate("/login");
+    } catch {
+      navigate("/login");
     } finally {
       setIsLoggingOut(false);
     }
   };
 
-  // Clases base para los enlaces
-  const linkClass = "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 group";
-  const activeClass = "bg-blue-600 text-white shadow-md";
-  const inactiveClass = "text-slate-300 hover:bg-slate-800 hover:text-white";
+  const linkClass = "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group";
+  const activeClass = "bg-blue-600 text-white shadow-lg shadow-blue-900/20";
+  const inactiveClass = "text-slate-400 hover:bg-slate-800 hover:text-white";
+
+  const navItems = [
+    { to: "/",              icon: <Home size={22} />,          label: "Inicio" },
+    { to: "/monitoring",    icon: <Activity size={22} />,      label: "Monitoreo Real" },
+    { to: "/control-panel", icon: <LayoutDashboard size={22}/>, label: "Panel de Control" },
+    { to: "/graphs",        icon: <BarChart3 size={22} />,     label: "Estadísticas" },
+    { to: "/historical",    icon: <History size={22} />,       label: "Historial" },
+    { to: "/profile",       icon: <User size={22} />,          label: "Perfil" },
+  ];
+
+  // Iniciales del avatar
+  const initials = user?.name
+    ? user.name.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
+    : "?";
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
-      {/* Overlay para móvil */}
+    <div className="flex min-h-screen bg-slate-50 font-sans">
+      {/* Overlay Móvil */}
       {isExpanded && isMobile && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 md:hidden"
           onClick={() => setIsExpanded(false)}
         />
       )}
 
-      {/* Botón toggle para móvil/desktop */}
+      {/* Botón Toggle */}
       <button
         onClick={handleToggle}
-        className={`fixed top-4 z-50 p-2 rounded-lg bg-slate-900 text-white shadow-lg transition-all duration-300 hover:bg-slate-800 ${
-          isExpanded 
-            ? isMobile 
-              ? "left-64" 
-              : "left-56"
-            : "left-4"
-        } md:left-4`}
+        className={`fixed top-4 z-50 p-2.5 rounded-xl bg-slate-900 text-white shadow-xl transition-all duration-300 md:left-4 ${
+          isExpanded ? (isMobile ? "left-60" : "left-52") : "left-4"
+        }`}
       >
-        {isExpanded ? (
-          <XMarkIcon className="w-6 h-6" />
-        ) : (
-          <Bars3Icon className="w-6 h-6" />
-        )}
+        {isExpanded ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-white z-40 transition-all duration-500 ease-in-out shadow-xl ${
-          isExpanded 
-            ? "w-64 md:w-56" 
-            : "w-20"
-        } ${
-          isMobile && !isExpanded ? "-translate-x-full" : ""
-        }`}
-        onMouseEnter={() => {
-          if (isHoverEnabled && !isMobile) setIsExpanded(true);
-        }}
-        onMouseLeave={() => {
-          if (isHoverEnabled && !isMobile) setIsExpanded(false);
-        }}
+        className={`fixed top-0 left-0 h-screen bg-slate-950 text-white z-40 transition-all duration-500 ease-in-out border-r border-slate-800/50 ${
+          isExpanded ? "w-64 md:w-56" : "w-20"
+        } ${isMobile && !isExpanded ? "-translate-x-full" : "translate-x-0"}`}
+        onMouseEnter={() => isHoverEnabled && !isMobile && setIsExpanded(true)}
+        onMouseLeave={() => isHoverEnabled && !isMobile && setIsExpanded(false)}
       >
         <div className="flex flex-col h-full">
-          {/* Logo y título */}
-          <div className="p-4 border-b border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <CubeIcon className="w-6 h-6" />
+          {/* Header */}
+          <div className="h-20 flex items-center px-4 border-b border-slate-800/50">
+            <div className="flex items-center gap-3 overflow-hidden">
+              <div className="flex-shrink-0 bg-blue-600 p-2 rounded-lg shadow-inner">
+                <Zap size={24} className="text-white fill-current" />
               </div>
-              <div className={`overflow-hidden transition-all duration-300 ${isExpanded ? "w-auto opacity-100" : "w-0 opacity-0"}`}>
-                <h1 className="text-xl font-bold whitespace-nowrap">Food Delivery</h1>
-                {user && (
-                  <div className="flex items-center gap-2 mt-1 text-sm text-slate-400">
-                    <UserCircleIcon className="w-4 h-4" />
-                    <span>{user.role?.toLowerCase()}</span>
-                  </div>
-                )}
+              <div className={`transition-opacity duration-300 ${isExpanded ? "opacity-100" : "opacity-0"}`}>
+                <h1 className="font-bold text-lg leading-tight tracking-tight">EcoSort</h1>
+                <p className="text-[10px] text-blue-400 font-mono uppercase tracking-widest">Planta Reciclaje</p>
               </div>
             </div>
           </div>
 
           {/* Navegación */}
-          <nav className="flex-1 p-4 overflow-y-auto">
-            <div className="space-y-1">
-              {/* CLIENTE */}
-              {user?.role === "CLIENTE" && (
-                <>
-                  <NavLink
-                    to="/"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Catálogo"
-                  >
-                    <HomeIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Catálogo
-                    </span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/client/orders"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Mis Órdenes"
-                  >
-                    <ClipboardDocumentListIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Mis Órdenes
-                    </span>
-                  </NavLink>
-                </>
-              )}
-
-              {/* ADMIN */}
-              {user?.role === "ADMINISTRADOR" && (
-                <>
-                  <NavLink
-                    to="/admin/users"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Usuarios"
-                  >
-                    <UsersIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Usuarios
-                    </span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/admin/restaurants"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Restaurantes"
-                  >
-                    <BuildingStorefrontIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Restaurantes
-                    </span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/admin/menus"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Menús"
-                  >
-                    <BookOpenIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Menús
-                    </span>
-                  </NavLink>
-                </>
-              )}
-
-              {/* RESTAURANTE */}
-              {user?.role === "RESTAURANTE" && (
-                <>
-                  <NavLink
-                    to="/restaurant/orders"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Órdenes"
-                  >
-                    <ClipboardDocumentListIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Órdenes
-                    </span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/restaurant/menu"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Menú"
-                  >
-                    <BuildingStorefrontIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Menú
-                    </span>
-                  </NavLink>
-                </>
-              )}
-
-              {/* DELIVERY */}
-              {user?.role === "REPARTIDOR" && (
-                <>
-                  <NavLink
-                    to="/delivery/available"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Pedidos Disponibles"
-                  >
-                    <TruckIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Pedidos Disponibles
-                    </span>
-                  </NavLink>
-
-                  <NavLink
-                    to="/delivery/active"
-                    className={({ isActive }) =>
-                      `${linkClass} ${isActive ? activeClass : inactiveClass}`
-                    }
-                    title="Pedido Activo"
-                  >
-                    <TruckIcon className="w-5 h-5 flex-shrink-0" />
-                    <span className={`transition-all duration-300 whitespace-nowrap ${
-                      isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
-                    }`}>
-                      Pedido Activo
-                    </span>
-                  </NavLink>
-                </>
-              )}
-            </div>
+          <nav className="flex-1 px-3 py-6 space-y-2 overflow-y-auto scrollbar-hide">
+            {navItems.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => `${linkClass} ${isActive ? activeClass : inactiveClass}`}
+                title={!isExpanded ? item.label : ""}
+              >
+                <span className="flex-shrink-0">{item.icon}</span>
+                <span className={`whitespace-nowrap font-medium transition-all duration-300 ${
+                  isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
+                }`}>
+                  {item.label}
+                </span>
+              </NavLink>
+            ))}
           </nav>
 
-          {/* Botón de Logout */}
-          <div className="p-4 border-t border-slate-800">
+          {/* Footer: usuario + logout */}
+          <div className="p-3 border-t border-slate-800/50 space-y-1">
+            {/* Info de usuario */}
+            <NavLink
+              to="/profile"
+              className={({ isActive }) =>
+                `${linkClass} ${isActive ? activeClass : inactiveClass}`
+              }
+              title={!isExpanded ? (user?.name ?? "Perfil") : ""}
+            >
+              <span className="flex-shrink-0 w-[22px] h-[22px] flex items-center justify-center bg-blue-600 rounded-md text-white text-xs font-bold">
+                {initials}
+              </span>
+              <span className={`whitespace-nowrap font-medium text-sm transition-all duration-300 ${
+                isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
+              }`}>
+                {user?.name ?? "Mi perfil"}
+              </span>
+            </NavLink>
+
+            {/* Logout */}
             <button
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className={`${linkClass} w-full text-red-300 hover:bg-red-500/20 hover:text-red-100 disabled:opacity-50 disabled:cursor-not-allowed`}
-              title="Cerrar sesión"
+              className={`${linkClass} w-full text-slate-400 hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50`}
             >
-              <ArrowLeftOnRectangleIcon className="w-5 h-5 flex-shrink-0" />
-              <span className={`transition-all duration-300 whitespace-nowrap ${
+              <span className="flex-shrink-0">
+                {isLoggingOut ? <Loader2 size={22} className="animate-spin" /> : <LogOut size={22} />}
+              </span>
+              <span className={`font-medium transition-all duration-300 ${
                 isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 absolute"
               }`}>
-                {isLoggingOut ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-red-300 border-t-transparent rounded-full animate-spin"></div>
-                    Cerrando...
-                  </span>
-                ) : (
-                  "Cerrar sesión"
-                )}
+                {isLoggingOut ? "Saliendo..." : "Cerrar Sesión"}
               </span>
             </button>
           </div>
@@ -314,13 +162,13 @@ const NavBar = () => {
       </aside>
 
       {/* Contenido principal */}
-      <main
-        className={`flex-1 min-h-screen transition-all duration-500 ease-in-out p-6 ${
-          isExpanded ? "md:ml-56 ml-0" : "md:ml-20 ml-0"
-        } ${isMobile && isExpanded ? "opacity-50" : ""}`}
-      >
-        <div className="max-w-7xl mx-auto">
-          <Outlet />
+      <main className={`flex-1 transition-all duration-500 ease-in-out ${
+        isExpanded ? "md:ml-56 ml-0" : "md:ml-20 ml-0"
+      }`}>
+        <div className={`p-6 min-h-screen ${isMobile && isExpanded ? "blur-sm" : ""}`}>
+          <div className="max-w-7xl mx-auto">
+            <Outlet />
+          </div>
         </div>
       </main>
     </div>

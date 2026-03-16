@@ -1,8 +1,17 @@
-import { Navigate } from "react-router-dom";
-import { isAuthenticated } from "../utils/authStorage";
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import type { ReactNode } from 'react';
 
-const PublicRoutes = ({ children }: any) => {
-  return isAuthenticated() ? <Navigate to="/" /> : children;
+interface Props {
+  children: ReactNode;
+}
+
+const PublicRoute = ({ children }: Props) => {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) return null;
+
+  return isAuthenticated ? <Navigate to="/" replace /> : <>{children}</>;
 };
 
-export default PublicRoutes;
+export default PublicRoute;
