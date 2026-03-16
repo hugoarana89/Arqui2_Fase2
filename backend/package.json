@@ -34,7 +34,8 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.3.0",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "mqtt": "^5.15.0"
   },
   "engines": {
     "node": ">=18.0.0"
