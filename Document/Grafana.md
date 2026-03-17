@@ -1,3 +1,6 @@
+## Configuración de grafana
+
+```yaml
 version: "3.8"
 
 services:
@@ -80,3 +83,94 @@ volumes:
 networks:
   app_network:
     driver: bridge
+```
+
+---
+
+# 🚀 Cómo usarlo
+
+## 1. Levantar todo
+
+```bash
+docker-compose up
+```
+
+---
+
+## 2. Entrar a Grafana
+
+* URL: [http://localhost:3000](http://localhost:3000)
+* Usuario: `admin`
+* Password: `admin`
+
+---
+
+## 3. Configurar JSON API
+
+En Grafana:
+
+1. **Connections → Data sources**
+2. Agregar: **JSON API**
+3. URL:
+
+```text
+http://backend_app:4000
+```
+
+👉 Nota importante:
+
+* Se usa `backend_app` (nombre del servicio Docker)
+* NO `localhost`
+
+---
+
+## 4. Ejemplo de endpoint hacia la api
+
+```js
+app.get('/metrics/users', async (req, res) => {
+  res.json([
+    {
+      target: "users",
+      datapoints: [
+        [20, Date.now() - 10000],
+        [25, Date.now()]
+      ]
+    }
+  ]);
+});
+```
+
+---
+
+## Configuración de los frames
+
+El iframe debe de apuntar a:
+
+```text
+http://localhost:3000/d-solo/UID/dashboard?panelId=1&refresh=5s
+```
+
+---
+
+## Imagenes de configuración
+
+<div align="center">
+  <img src="img/grafana1.jpg" alt="Configuración de grafana." width="1000">
+  <p><i>Figura 1: Configuración de grafana.</i></p>
+</div>
+
+---
+
+<div align="center">
+  <img src="img/grafana2.jpg" alt="Configuración de grafana." width="1000">
+  <p><i>Figura 2: Configuración de grafana.</i></p>
+</div>
+
+---
+
+<div align="center">
+  <img src="img/grafana3.jpg" alt="Configuración de grafana." width="1000">
+  <p><i>Figura 3: Configuración de grafana.</i></p>
+</div>
+
+---
