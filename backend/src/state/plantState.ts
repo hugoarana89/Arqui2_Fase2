@@ -46,36 +46,36 @@ export interface PlantState {
   last_updated: string;
 }
 
-// ── Valores iniciales (como indicaste) ────────
+// ── Valores iniciales ────────
 const state: PlantState = {
   parqueos_ocupados: 0,
   talanquera_abierta: false,
-  alerta_parqueo_lleno: true,
+  alerta_parqueo_lleno: false,
 
-  puerta_abierta: true,
-  alerta_rfid: true,
+  puerta_abierta: false,
+  alerta_rfid: false,
 
-  banda_principal: true,
-  banda_plastico: true,
-  banda_vidrio: true,
-  banda_metal: true,
+  banda_principal: false,
+  banda_plastico: false,
+  banda_vidrio: false,
+  banda_metal: false,
 
   codigo_material: 0,
 
-  alerta_humo: true,
+  alerta_humo: false,
   umbral_humo: 0,
   modo_emergencia: false,
 
-  iluminacion: true,
+  iluminacion: false,
 
-  almacen_plastico: 40,
-  almacen_vidrio: 80,
-  almacen_metal: 10,
+  almacen_plastico: 0,
+  almacen_vidrio: 0,
+  almacen_metal: 0,
 
-  _unidades_plastico: 4,  // 40% de 10
-  _unidades_vidrio: 8,    // 80% de 10
-  _unidades_metal: 1,     // 10% de 10
-  almacen_max: 10,
+  _unidades_plastico: 0,  // si el valor es 40 entonces 40% de 20
+  _unidades_vidrio: 0,    // si el valor es 80 entonces 80% de 20
+  _unidades_metal: 0,     // si el valor es 10 entonces 10% de 20
+  almacen_max: 20, // numero máximo de unidades por línea (para el cálculo de porcentaje)
 
   last_updated: new Date().toISOString(),
 };
