@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  # =============================
+  # BACKEND
+  # =============================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend_app
+    env_file:
+      - ./backend/.env
+    ports:
+      - "4000:4000"
+    depends_on:
+      - mqtt
+    restart: always
+    networks:
+      - app_network
+
+  # =============================
+  # FRONTEND
+  # =============================
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    env_file:
+      - ./frontend/.env
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - app_network
+
+  # =============================
+  # MQTT BROKER
+  # =============================
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt_broker
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+    restart: always
+    networks:
+      - app_network
+
+  # =============================
+  # GRAFANA
+  # =============================
+  grafana:
+    build: ./grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=arqui2
+      - GF_SECURITY_ADMIN_PASSWORD=|/hR9S6£/3=(
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.  # se obtiene en http://localhost:3000/org -> Organization name
+      - GF_SECURITY_COOKIE_SAMESITE=disabled   # ← necesario para iFrames cross-origin
+      - GF_SECURITY_COOKIE_SECURE=false        # ← si no se usa HTTPS
+      # ESTO FUERZA A GRAFANA A REINTENTAR SI EL PLUGIN NO ESTÁ LISTO
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/datasources/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+      - ./grafana/provisioning/dashboards/dashboard_config.yaml:/etc/grafana/provisioning/dashboards/dashboard_config.yaml:ro
+      - ./grafana/provisioning/dashboards/ecosort-dashboard.json:/etc/grafana/provisioning/dashboards/ecosort-dashboard.json:ro
+    depends_on:
+      - backend
+    restart: always
+    networks:
+      - app_network
+
+volumes:
+  grafana_data:
+
+networks:
+  app_network:
+    driver: bridge

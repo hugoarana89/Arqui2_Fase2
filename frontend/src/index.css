@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos globales para la barra de desplazamiento */
+
+/* 1. Para Firefox (estándar) */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #1e293b; /* pulgar azul, pista slate-800 */
+}
+
+/* 2. Para Chrome, Edge y Safari (webkit) */
+::-webkit-scrollbar {
+  width: 10px; /* Un poco más delgado */
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1e293b; /* slate-800 - color oscuro que combina con la app */
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3b82f6; /* blue-500 - azul vibrante que combina con los acentos */
+  border-radius: 8px;
+  border: 2px solid #1e293b; /* Mismo color que el track para efecto "flotante" */
+  transition: all 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2563eb; /* blue-600 - azul más oscuro al hacer hover */
+  border: 2px solid #1e293b; /* Mantenemos el mismo borde para que no se vea gris */
+}
+
+/* Opcional: personalizar las esquinas donde se encuentran scrollbars */
+::-webkit-scrollbar-corner {
+  background: #0f172a; /* slate-900 */
+}
+
+/* Para navegadores que soporten scrollbar-color con hover (Chrome 121+) */
+@media (scripting: enabled) {
+  html {
+    scrollbar-color: #3b82f6 #1e293b;
+  }
+  
+  /* Fallback para cuando el hover no funciona con scrollbar-color */
+  html:hover {
+    scrollbar-color: #2563eb #1e293b;
+  }
+}
+
+/* Mejora para dispositivos móviles - scrollbars más delgados y sutiles */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    border-width: 1px;
+  }
+}
