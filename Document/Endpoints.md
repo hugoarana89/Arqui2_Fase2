@@ -12,7 +12,7 @@
 ```json
 {
   "timestamp": "2026-03-17T10:00:00.000Z",
-  "parqueos_ocupados": 3
+  "parqueos_ocupados": 2
 }
 ```
 

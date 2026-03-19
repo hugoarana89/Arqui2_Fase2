@@ -10,9 +10,10 @@ import { initMqttClient } from './config/mqtt.js';
 import { initSocketServer } from './config/socket.js';
 import { registerMqttSubscriptions } from './mqtt/mqttSubscriber.js';
 
-import authRoutes from './routes/auth.routes.js';
-import controlRoutes from './routes/control.routes.js';
+import authRoutes       from './routes/auth.routes.js';
+import controlRoutes    from './routes/control.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
+import grafanaRoutes    from './routes/grafana.routes.js';
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js';
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use(express.json());
 app.use('/api/auth',       authRoutes);
 app.use('/api/control',    controlRoutes);
 app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/grafana',    grafanaRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'EcoSort API operativa 🚀' });
@@ -44,22 +46,17 @@ app.use(globalErrorHandler);
 
 // ── Bootstrap ─────────────────────────────────
 async function bootstrap(): Promise<void> {
-  // 1. MongoDB
   await DatabaseConnection.getInstance().connect();
 
-  // 2. Servidor HTTP (necesario para Socket.io)
   const httpServer = createServer(app);
-
-  // 3. Socket.io sobre el mismo servidor HTTP
   initSocketServer(httpServer);
 
-  // 4. Cliente MQTT + suscripciones
   const mqttClient = await initMqttClient();
   registerMqttSubscriptions(mqttClient);
 
-  // 5. Arrancar
   httpServer.listen(PORT, () => {
     console.log(`\n🚀 EcoSort API corriendo en http://localhost:${PORT}`);
+
     console.log(`\n📋 Endpoints AUTH:`);
     console.log(`   POST  /api/auth/register`);
     console.log(`   POST  /api/auth/login`);
@@ -67,17 +64,30 @@ async function bootstrap(): Promise<void> {
     console.log(`   POST  /api/auth/reset-password`);
     console.log(`   PUT   /api/auth/change-password     🔒`);
     console.log(`   GET   /api/auth/me                  🔒`);
+
     console.log(`\n📋 Endpoints CONTROL (🔒 JWT requerido):`);
     console.log(`   POST  /api/control/linea`);
     console.log(`   POST  /api/control/acceso`);
     console.log(`   POST  /api/control/iluminacion`);
     console.log(`   POST  /api/control/emergencia`);
+
     console.log(`\n📋 Endpoints MONITORING (🔒 JWT requerido):`);
     console.log(`   GET   /api/monitoring/state`);
     console.log(`   GET   /api/monitoring/events`);
     console.log(`   GET   /api/monitoring/classifications`);
     console.log(`   GET   /api/monitoring/classifications/stats`);
     console.log(`   GET   /api/monitoring/commands`);
+
+    console.log(`\n📊 Endpoints GRAFANA (sin JWT, server-side):`);
+    console.log(`   GET   /api/grafana/health`);
+    console.log(`   POST  /api/grafana/materiales-por-linea`);
+    console.log(`   POST  /api/grafana/parqueos-ocupacion`);
+    console.log(`   POST  /api/grafana/eventos-criticos`);
+    console.log(`   POST  /api/grafana/throughput`);
+    console.log(`   POST  /api/grafana/kpis-produccion`);
+    console.log(`   POST  /api/grafana/kpis-eventos-criticos`);
+    console.log(`   POST  /api/grafana/actividad-sistema`);
+
     console.log(`\n🔌 WebSocket en ws://localhost:${PORT} (evento: state_update)`);
   });
 }

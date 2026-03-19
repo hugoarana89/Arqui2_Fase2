@@ -126,7 +126,7 @@ def handle_option(client: mqtt.Client, option: str) -> bool:
     elif option == "1":
         pub(client, "ecosort/planta/parqueos/estado", {
             "timestamp": ts(),
-            "parqueos_ocupados": 3,
+            "parqueos_ocupados": 2,
         })
 
     elif option == "2":

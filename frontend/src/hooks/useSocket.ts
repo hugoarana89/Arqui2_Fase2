@@ -42,7 +42,7 @@ export const useSocket = (): UseSocketReturn => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const socketRef = useRef<any>(null);
 
-  const SERVER_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api')
+  const SERVER_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api')
     .replace('/api', '');
 
   const connect = useCallback(async () => {

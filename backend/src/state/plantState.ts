@@ -31,7 +31,7 @@ export interface PlantState {
   // Control
   iluminacion: boolean;
 
-  // Almacén (porcentaje 0-100 calculado sobre un máximo de 10 unidades)
+  // Almacén (porcentaje 0-100 calculado sobre un máximo de 20 unidades)
   almacen_plastico: number;
   almacen_vidrio: number;
   almacen_metal: number;
