@@ -44,15 +44,23 @@ const requireApiKey = (req: Request, res: Response, next: NextFunction): void =>
 router.get('/health', requireApiKey, (req, res) => GrafanaController.health(req, res));
 
 // ── Endpoints de series temporales ────────────────────────────────────────────
+router.get('/materiales-por-linea',   requireApiKey, (req, res, next) => GrafanaController.materialesPorLinea(req, res, next));
 router.post('/materiales-por-linea',  requireApiKey, (req, res, next) => GrafanaController.materialesPorLinea(req, res, next));
+router.get('/clasificador-color',     requireApiKey, (req, res, next) => GrafanaController.clasificadorColor(req, res, next));
 router.post('/clasificador-color',    requireApiKey, (req, res, next) => GrafanaController.clasificadorColor(req, res, next));
+router.get('/parqueos-ocupacion',     requireApiKey, (req, res, next) => GrafanaController.parqueosOcupacion(req, res, next));
 router.post('/parqueos-ocupacion',    requireApiKey, (req, res, next) => GrafanaController.parqueosOcupacion(req, res, next));
+router.get('/eventos-criticos',       requireApiKey, (req, res, next) => GrafanaController.eventosCriticos(req, res, next));
 router.post('/eventos-criticos',      requireApiKey, (req, res, next) => GrafanaController.eventosCriticos(req, res, next));
+router.get('/throughput',             requireApiKey, (req, res, next) => GrafanaController.throughput(req, res, next));
 router.post('/throughput',            requireApiKey, (req, res, next) => GrafanaController.throughput(req, res, next));
 
 // ── Endpoints de tablas (KPIs) ────────────────────────────────────────────────
+router.get('/kpis-produccion',        requireApiKey, (req, res, next) => GrafanaController.kpisProduccion(req, res, next));
 router.post('/kpis-produccion',       requireApiKey, (req, res, next) => GrafanaController.kpisProduccion(req, res, next));
+router.get('/kpis-eventos-criticos',  requireApiKey, (req, res, next) => GrafanaController.kpisEventosCriticos(req, res, next));
 router.post('/kpis-eventos-criticos', requireApiKey, (req, res, next) => GrafanaController.kpisEventosCriticos(req, res, next));
+router.get('/actividad-sistema',      requireApiKey, (req, res, next) => GrafanaController.actividadSistema(req, res, next));
 router.post('/actividad-sistema',     requireApiKey, (req, res, next) => GrafanaController.actividadSistema(req, res, next));
 
 export default router;

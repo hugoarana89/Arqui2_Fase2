@@ -26,8 +26,18 @@ import CommandLogModel from '../models/commandLog.model.js';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-/** Parsea el rango de fechas del body de Grafana */
+/** Parsea el rango de fechas del body o query params de Grafana.
+ *  - Body (POST): body.range.from / body.range.to  → ISO8601 string
+ *  - Query (GET):  ?from=<epoch_ms>&to=<epoch_ms>  → número como string
+ */
 function parseRange(body: Record<string, unknown>): { from: Date; to: Date } {
+  // Query params: ?from=1234567890000&to=1234567890000 (epoch ms)
+  if (body['from'] !== undefined) {
+    const from = new Date(Number(body['from']));
+    const to   = new Date(Number(body['to'] ?? Date.now()));
+    return { from, to };
+  }
+  // Body: { range: { from: "ISO", to: "ISO" } }
   const range = body['range'] as { from?: string; to?: string } | undefined;
   const from = range?.from ? new Date(range.from) : new Date(Date.now() - 24 * 60 * 60 * 1000);
   const to = range?.to ? new Date(range.to) : new Date();
@@ -40,6 +50,12 @@ function parseRange(body: Record<string, unknown>): { from: Date; to: Date } {
  * Fallback: parsear el string 'interval' (ej. "1m", "5m", "1h").
  */
 function parseIntervalMs(body: Record<string, unknown>): number {
+  // Query params send intervalMs as string
+  const raw = body['intervalMs'];
+  const asNum = typeof raw === 'string' ? parseInt(raw, 10) : (raw as number | undefined);
+  if (typeof asNum === 'number' && asNum > 0) {
+    return asNum;
+  }
   if (typeof body['intervalMs'] === 'number' && body['intervalMs'] > 0) {
     return body['intervalMs'] as number;
   }
@@ -71,8 +87,7 @@ class GrafanaController {
   // Devuelve 3 series: plastico, vidrio, metal
   async materialesPorLinea(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for materialesPorLinea with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
       const intervalMs = parseIntervalMs(body);
 
@@ -96,8 +111,7 @@ class GrafanaController {
   // Devuelve 3 series: plastico[0], vidrio[1], metal[2]
   async clasificadorColor(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for clasificadorColor with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
       const intervalMs = parseIntervalMs(body);
 
@@ -118,8 +132,7 @@ class GrafanaController {
   // Devuelve 1 serie: parqueos_ocupados (valor en cada cambio de estado)
   async parqueosOcupacion(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for parqueosOcupacion with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
 
       const datapoints = await SensorEventModel.getParqueosTimeSeries(from, to);
@@ -133,8 +146,7 @@ class GrafanaController {
   // Devuelve 4 series: alarmas_humo, alertas_rfid, alertas_parqueo_lleno, paros_emergencia
   async eventosCriticos(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for eventosCriticos with body:', body); 
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
       const intervalMs = parseIntervalMs(body);
 
@@ -179,8 +191,7 @@ class GrafanaController {
   // Devuelve 1 serie: throughput (count por bucket)
   async throughput(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for throughput with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
       const intervalMs = parseIntervalMs(body);
 
@@ -195,8 +206,7 @@ class GrafanaController {
   // Devuelve formato TABLE de Grafana
   async kpisProduccion(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for kpisProduccion with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
 
       const { porLinea } = await ClassificationResultModel.getKpisProduccion(from, to);
@@ -228,8 +238,7 @@ class GrafanaController {
   // Panel: Tabla de KPIs de eventos críticos (conteos absolutos)
   async kpisEventosCriticos(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for kpisEventosCriticos with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
 
       const [
@@ -284,8 +293,7 @@ class GrafanaController {
   // Devuelve 3 series apilables: eventos_sensores, clasificaciones, comandos
   async actividadSistema(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const body = req.body as Record<string, unknown>;
-      console.log('Received request for actividadSistema with body:', body);
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
       const { from, to } = parseRange(body);
       const intervalMs = parseIntervalMs(body);
 

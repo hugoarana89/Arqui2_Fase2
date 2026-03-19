@@ -120,14 +120,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -144,20 +136,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/materiales-por-linea"
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -174,20 +158,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "B",
-          "urlPath": "/api/grafana/materiales-por-linea"
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -204,10 +180,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "C",
-          "urlPath": "/api/grafana/materiales-por-linea"
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Materiales Procesados por Línea",
@@ -301,14 +277,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -325,10 +293,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/throughput"
+          "urlPath": "/api/grafana/throughput?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Throughput del Sistema",
@@ -467,14 +435,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -491,20 +451,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/clasificador-color"
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -521,20 +473,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "B",
-          "urlPath": "/api/grafana/clasificador-color"
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -551,10 +495,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "C",
-          "urlPath": "/api/grafana/clasificador-color"
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Detecciones del Clasificador por Tipo de Material",
@@ -652,14 +596,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -676,10 +612,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/parqueos-ocupacion"
+          "urlPath": "/api/grafana/parqueos-ocupacion?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Ocupación de Parqueos",
@@ -772,14 +708,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -796,20 +724,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/actividad-sistema"
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -826,20 +746,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "B",
-          "urlPath": "/api/grafana/actividad-sistema"
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -856,10 +768,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "C",
-          "urlPath": "/api/grafana/actividad-sistema"
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Actividad del Sistema",
@@ -1013,14 +925,6 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1037,20 +941,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/eventos-criticos"
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1067,20 +963,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "B",
-          "urlPath": "/api/grafana/eventos-criticos"
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1097,20 +985,12 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "C",
-          "urlPath": "/api/grafana/eventos-criticos"
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         },
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1127,10 +1007,10 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryType": "query",
           "refId": "D",
-          "urlPath": "/api/grafana/eventos-criticos"
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "Eventos Críticos",
@@ -1244,15 +1124,7 @@
       "pluginVersion": "12.4.1",
       "targets": [
         {
-          "bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
-          "cacheDurationSeconds": 100,
+          "cacheDurationSeconds": 0,
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1284,11 +1156,11 @@
               "type": "string"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryParams": "",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/kpis-produccion"
+          "urlPath": "/api/grafana/kpis-produccion?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "KPIs de Producción por Línea",
@@ -1394,15 +1266,8 @@
       },
       "pluginVersion": "12.4.1",
       "targets": [
-        {"bodyType": "json",
-          "bodyContent": {
-            "range": {
-              "from": "${__from:date:iso}",
-              "to": "${__to:date:iso}"
-            },
-            "intervalMs": "${__interval_ms}"
-          },
-          "cacheDurationSeconds": 100,
+        {
+          "cacheDurationSeconds": 0,
           "datasource": {
             "type": "marcusolsson-json-datasource",
             "uid": "efg9puqoh4tmoa"
@@ -1419,11 +1284,11 @@
               "type": "number"
             }
           ],
-          "method": "POST",
+          "method": "GET",
           "queryParams": "",
           "queryType": "query",
           "refId": "A",
-          "urlPath": "/api/grafana/kpis-eventos-criticos"
+          "urlPath": "/api/grafana/kpis-eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
         }
       ],
       "title": "KPIs de Eventos Críticos",
@@ -1431,7 +1296,7 @@
     }
   ],
   "preload": false,
-  "refresh": "30s",
+  "refresh": "10s",
   "schemaVersion": 42,
   "tags": [
     "EcoSort",
@@ -1448,7 +1313,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "EcoSort - Dashboard de Monitoreo",
-  "uid": "ecosort-dashboard-v2",
+  "uid": "ecosort-dashboard-v4",
   "version": 2,
   "weekStart": ""
 }
