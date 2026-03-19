@@ -3,9 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// ──────────────────────────────────────────────
-//  Singleton de conexión a MongoDB Atlas
-// ──────────────────────────────────────────────
 class DatabaseConnection {
   private static instance: DatabaseConnection;
   private client: MongoClient;
@@ -35,59 +32,61 @@ class DatabaseConnection {
     await this.client.connect();
     await this.client.db('admin').command({ ping: 1 });
 
-    const dbName = process.env['DB_NAME'] ?? 'auth_db';
+    const dbName = process.env['DB_NAME'] ?? 'ecosort_db';
     this.db = this.client.db(dbName);
 
     console.log(`✅ Conectado a MongoDB Atlas — base de datos: "${dbName}"`);
-
     await this.initCollections();
   }
 
-  /**
-   * Crea las colecciones con sus validadores (schema) si no existen.
-   * Esto garantiza que los campos coincidan sin entrar manualmente a Atlas.
-   */
   private async initCollections(): Promise<void> {
-    const existingCollections = (await this.db.listCollections().toArray()).map(
-      (c) => c.name,
-    );
+    const existing = (await this.db.listCollections().toArray()).map((c) => c.name);
 
-    // ── Colección: users ──────────────────────
-    if (!existingCollections.includes('users')) {
+    // ── users ──────────────────────────────────
+    if (!existing.includes('users')) {
       await this.db.createCollection('users', {
         validator: {
           $jsonSchema: {
             bsonType: 'object',
             required: ['name', 'email', 'password', 'createdAt'],
             properties: {
-              name: { bsonType: 'string', description: 'Nombre del usuario' },
-              email: {
-                bsonType: 'string',
-                pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$',
-                description: 'Correo electrónico válido y único',
-              },
-              password: { bsonType: 'string', description: 'Hash bcrypt' },
-              passwordResetToken: {
-                bsonType: ['string', 'null'],
-                description: 'Token para recuperar contraseña',
-              },
-              passwordResetExpires: {
-                bsonType: ['date', 'null'],
-                description: 'Expiración del token',
-              },
-              createdAt: { bsonType: 'date' },
-              updatedAt: { bsonType: 'date' },
+              name:                 { bsonType: 'string' },
+              email:                { bsonType: 'string', pattern: '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$' },
+              password:             { bsonType: 'string' },
+              passwordResetToken:   { bsonType: ['string', 'null'] },
+              passwordResetExpires: { bsonType: ['date',   'null'] },
+              createdAt:            { bsonType: 'date' },
+              updatedAt:            { bsonType: 'date' },
             },
           },
         },
       });
+      await this.db.collection('users').createIndex({ email: 1 }, { unique: true });
+      console.log('📦 Colección "users" creada.');
+    }
 
-      // Índice único sobre email
-      await this.db
-        .collection('users')
-        .createIndex({ email: 1 }, { unique: true });
+    // ── sensor_events ──────────────────────────
+    if (!existing.includes('sensor_events')) {
+      await this.db.createCollection('sensor_events');
+      await this.db.collection('sensor_events').createIndex({ receivedAt: -1 });
+      await this.db.collection('sensor_events').createIndex({ category: 1, receivedAt: -1 });
+      console.log('📦 Colección "sensor_events" creada.');
+    }
 
-      console.log('📦 Colección "users" creada con validador y índice único.');
+    // ── classification_results ─────────────────
+    if (!existing.includes('classification_results')) {
+      await this.db.createCollection('classification_results');
+      await this.db.collection('classification_results').createIndex({ timestamp: -1 });
+      await this.db.collection('classification_results').createIndex({ linea: 1, timestamp: -1 });
+      console.log('📦 Colección "classification_results" creada.');
+    }
+
+    // ── commands_log ───────────────────────────
+    if (!existing.includes('commands_log')) {
+      await this.db.createCollection('commands_log');
+      await this.db.collection('commands_log').createIndex({ sentAt: -1 });
+      await this.db.collection('commands_log').createIndex({ userId: 1, sentAt: -1 });
+      console.log('📦 Colección "commands_log" creada.');
     }
   }
 

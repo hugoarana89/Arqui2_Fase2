@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'Ecosort Dashboards'
+    orgId: 1
+    folder: 'Arqui2'
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/provisioning/dashboards
