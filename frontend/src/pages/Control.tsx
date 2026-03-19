@@ -2,7 +2,8 @@ import { useState } from 'react';
 import {
   Play, Pause, DoorOpen, DoorClosed, Car,
   Lightbulb, LightbulbOff, ShieldAlert, ShieldCheck,
-  Loader2, CheckCircle2, AlertCircle, Activity
+  Loader2, CheckCircle2, AlertCircle, Activity,
+  Package, RotateCcw, Settings2
 } from 'lucide-react';
 import { controlService } from '../services/plant.service';
 import { useSocket } from '../hooks/useSocket';
@@ -57,6 +58,7 @@ const Control = () => {
   const { plantState: s } = useSocket();
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [maxUnidades, setMaxUnidades] = useState<string>('');
 
   const addToast = (message: string, type: 'success' | 'error') => {
     const id = Date.now();
@@ -77,6 +79,19 @@ const Control = () => {
   };
 
   const L = (key: string) => loadingKey === key;
+
+  const handleSetMax = () => {
+    const parsed = parseInt(maxUnidades, 10);
+    if (isNaN(parsed) || parsed <= 0) {
+      addToast('Ingresa un número válido mayor a 0.', 'error');
+      return;
+    }
+    run('almacen-set-max', async () => {
+      const res = await controlService.resetAlmacen({ comando: 'set_max', max_unidades: parsed });
+      setMaxUnidades('');
+      return res;
+    });
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 p-6">
@@ -284,6 +299,87 @@ const Control = () => {
           </div>
 
         </div>
+
+        {/* Gestión de bodegas */}
+        <ControlCard title="Gestión de bodegas" icon={<Package size={16} />}>
+          <p className="text-slate-500 text-xs mb-4 leading-relaxed">
+            Vacía el contador de una bodega (por ejemplo, al retirar físicamente el material) o ajusta la capacidad máxima de todas las líneas.
+          </p>
+
+          {/* Vaciar bodegas */}
+          <div className="mb-5">
+            <p className="text-xs text-slate-400 font-medium mb-3 uppercase tracking-wider">Vaciar bodega</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {(['plastico', 'vidrio', 'metal'] as const).map((linea) => {
+                const labelMap = { plastico: 'Plástico', vidrio: 'Vidrio', metal: 'Metal' };
+                const pctMap = {
+                  plastico: s.almacen_plastico,
+                  vidrio:   s.almacen_vidrio,
+                  metal:    s.almacen_metal,
+                };
+                const pct = pctMap[linea];
+
+                return (
+                  <div key={linea} className="flex flex-col gap-2 p-3 bg-slate-800/50 rounded-xl border border-slate-700/50">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-300 font-medium">{labelMap[linea]}</span>
+                      <span className={`text-xs font-semibold ${pct >= 80 ? 'text-red-400' : pct >= 50 ? 'text-amber-400' : 'text-slate-400'}`}>
+                        {pct}%
+                      </span>
+                    </div>
+                    {/* Barra de ocupación */}
+                    <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all ${pct >= 80 ? 'bg-red-400' : pct >= 50 ? 'bg-amber-400' : 'bg-emerald-400'}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <ActionBtn
+                      label="Vaciar"
+                      icon={<RotateCcw size={13} />}
+                      variant="warning"
+                      loading={L(`almacen-reset-${linea}`)}
+                      disabled={pct === 0}
+                      onClick={() => run(`almacen-reset-${linea}`, () =>
+                        controlService.resetAlmacen({ comando: 'reset', linea })
+                      )}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Separador */}
+          <div className="border-t border-slate-800 mb-5" />
+
+          {/* Capacidad máxima */}
+          <div>
+            <p className="text-xs text-slate-400 font-medium mb-3 uppercase tracking-wider">Capacidad máxima por bodega</p>
+            <p className="text-slate-500 text-xs mb-3 leading-relaxed">
+              Capacidad actual: <span className="text-slate-300 font-semibold">{s.almacen_max} unidades</span>. Al cambiar este valor se recalculan los porcentajes automáticamente.
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min={1}
+                value={maxUnidades}
+                onChange={(e) => setMaxUnidades(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSetMax()}
+                placeholder={`Ej. ${s.almacen_max}`}
+                className="w-36 bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/30 placeholder:text-slate-600 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              />
+              <ActionBtn
+                label="Actualizar capacidad"
+                icon={<Settings2 size={15} />}
+                loading={L('almacen-set-max')}
+                disabled={maxUnidades === ''}
+                onClick={handleSetMax}
+              />
+            </div>
+          </div>
+        </ControlCard>
+
       </div>
     </div>
   );

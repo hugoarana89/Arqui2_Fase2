@@ -62,11 +62,14 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=arqui2
+      - GF_SECURITY_ADMIN_PASSWORD=|/hR9S6£/3=(
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Main Org.  # se obtiene en http://localhost:3000/org -> Organization name
+      - GF_SECURITY_COOKIE_SAMESITE=disabled   # ← necesario para iFrames cross-origin
+      - GF_SECURITY_COOKIE_SECURE=false        # ← si no se usa HTTPS
       # ESTO FUERZA A GRAFANA A REINTENTAR SI EL PLUGIN NO ESTÁ LISTO
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
     volumes:

@@ -77,3 +77,9 @@ export interface EmergenciaComandoDTO {
   comando: 'activar' | 'desactivar';
   motivo?: string;
 }
+
+export interface AlmacenComandoDTO {
+  comando: 'reset' | 'set_max';
+  linea?: 'plastico' | 'vidrio' | 'metal';
+  max_unidades?: number; // Solo para set_max
+}

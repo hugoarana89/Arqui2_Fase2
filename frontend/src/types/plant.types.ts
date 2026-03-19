@@ -82,3 +82,4 @@ export type LineaComando = { comando: 'pausar' | 'reanudar'; linea: 'principal' 
 export type AccesoComando = { comando: 'abrir' | 'cerrar'; elemento: 'puerta_principal' | 'talanquera' };
 export type IluminacionComando = { comando: 'encender' | 'apagar' };
 export type EmergenciaComando = { comando: 'activar' | 'desactivar'; motivo?: string };
+export type AlmacenComando = { comando: 'reset' | 'set_max'; linea?: 'plastico' | 'vidrio' | 'metal'; max_unidades?: number };

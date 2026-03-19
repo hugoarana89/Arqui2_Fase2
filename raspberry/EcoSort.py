@@ -87,33 +87,51 @@ def on_disconnect(client, userdata, rc):
 #  PARTE 1 — MENÚ DE PUBLICACIÓN (python → nodejs)
 # ──────────────────────────────────────────────
 MENU = """
-╔══════════════════════════════════════════════════════╗
-║          EcoSort — MQTT Tester (Python)              ║
-╠══════════════════════════════════════════════════════╣
-║  🅿️  PARQUEOS                                        ║
-║   1  → ecosort/planta/parqueos/estado                ║
-║   2  → ecosort/parqueo/talanquera/estado             ║
-║   3  → ecosort/parqueo/talanquera/alerta             ║
-╠══════════════════════════════════════════════════════╣
-║  🚪 ACCESO                                           ║
-║   4  → ecosort/acceso/puerta/estado                  ║
-║   5  → ecosort/acceso/puerta/alarma                  ║
-╠══════════════════════════════════════════════════════╣
-║  ⚙️  BANDAS DE PROCESAMIENTO                         ║
-║   6  → ecosort/procesamiento/bandas/principal        ║
-║   7  → ecosort/procesamiento/bandas/plastico         ║
-║   8  → ecosort/procesamiento/bandas/vidrio           ║
-║   9  → ecosort/procesamiento/bandas/metal            ║
-╠══════════════════════════════════════════════════════╣
-║  🔍 CLASIFICADOR                                     ║
-║   10 → ecosort/clasificador/material/detectado       ║
-║   11 → ecosort/clasificador/material/resultado       ║
-╠══════════════════════════════════════════════════════╣
-║  🔥 SEGURIDAD                                        ║
-║   12 → ecosort/seguridad/alarma/humo                 ║
-╠══════════════════════════════════════════════════════╣
-║   0  → Salir                                         ║
-╚══════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════════════════════╗
+║                 EcoSort — MQTT Tester (Python)                     ║
+╠════════════════════════════════════════════════════════════════════╣
+║  🅿️  PARQUEOS                                                       ║
+║   1  → ecosort/planta/parqueos/estado (0 parqueos ocupados)        ║
+║   2  → ecosort/planta/parqueos/estado (1 parqueo ocupado)          ║
+║   3  → ecosort/planta/parqueos/estado (2 parqueos ocupados)        ║
+║   4  → ecosort/parqueo/talanquera/estado (abierta)                 ║
+║   5  → ecosort/parqueo/talanquera/estado (cerrada)                 ║
+║   6  → ecosort/parqueo/talanquera/alerta (parqueo lleno)           ║
+║   7  → ecosort/parqueo/talanquera/alerta (parqueo disponible)      ║
+╠════════════════════════════════════════════════════════════════════╣
+║  🚪 ACCESO                                                         ║
+║   8  → ecosort/acceso/puerta/estado (abierta)                      ║
+║   9  → ecosort/acceso/puerta/estado (cerrada)                      ║
+║   10 → ecosort/acceso/puerta/alarma (alerta RFID activada)         ║
+║   11 → ecosort/acceso/puerta/alarma (alerta RFID desactivada)      ║
+╠════════════════════════════════════════════════════════════════════╣
+║  ⚙️  BANDAS DE PROCESAMIENTO                                       ║
+║   12 → ecosort/procesamiento/bandas/principal (activa)             ║
+║   13 → ecosort/procesamiento/bandas/principal (inactiva)           ║
+║   14 → ecosort/procesamiento/bandas/plastico (activa)              ║
+║   15 → ecosort/procesamiento/bandas/plastico (inactiva)            ║
+║   16 → ecosort/procesamiento/bandas/vidrio (activa)                ║
+║   17 → ecosort/procesamiento/bandas/vidrio (inactiva)              ║
+║   18 → ecosort/procesamiento/bandas/metal (activa)                 ║
+║   19 → ecosort/procesamiento/bandas/metal (inactiva)               ║
+╠════════════════════════════════════════════════════════════════════╣
+║  🔍 CLASIFICADOR                                                   ║
+║   20 → ecosort/clasificador/material/detectado (código 0)          ║
+║   21 → ecosort/clasificador/material/detectado (código 1)          ║
+║   22 → ecosort/clasificador/material/detectado (código 2)          ║
+║   23 → ecosort/clasificador/material/resultado (plástico aprobado) ║
+║   24 → ecosort/clasificador/material/resultado (plástico rechazado)║
+║   25 → ecosort/clasificador/material/resultado (vidrio aprobado)   ║
+║   26 → ecosort/clasificador/material/resultado (vidrio rechazado)  ║
+║   27 → ecosort/clasificador/material/resultado (metal aprobado)    ║
+║   28 → ecosort/clasificador/material/resultado (metal rechazado)   ║
+╠════════════════════════════════════════════════════════════════════╣
+║  🔥 SEGURIDAD                                                      ║
+║   29 → ecosort/seguridad/alarma/humo (alerta activa)               ║
+║   30 → ecosort/seguridad/alarma/humo (alerta desactivada)          ║
+╠════════════════════════════════════════════════════════════════════╣
+║   0  → Salir                                                       ║
+╚════════════════════════════════════════════════════════════════════╝
 """
 
 def handle_option(client: mqtt.Client, option: str) -> bool:
@@ -126,77 +144,201 @@ def handle_option(client: mqtt.Client, option: str) -> bool:
     elif option == "1":
         pub(client, "ecosort/planta/parqueos/estado", {
             "timestamp": ts(),
+            "parqueos_ocupados": 0,
+        })
+    
+    elif option == "2":
+        pub(client, "ecosort/planta/parqueos/estado", {
+            "timestamp": ts(),
+            "parqueos_ocupados": 1,
+        })
+        
+    elif option == "3":
+        pub(client, "ecosort/planta/parqueos/estado", {
+            "timestamp": ts(),
             "parqueos_ocupados": 2,
         })
 
-    elif option == "2":
+    elif option == "4":
         pub(client, "ecosort/parqueo/talanquera/estado", {
             "timestamp": ts(),
             "talanquera_abierta": True,
         })
+        
+    elif option == "5":
+        pub(client, "ecosort/parqueo/talanquera/estado", {
+            "timestamp": ts(),
+            "talanquera_abierta": False,
+        })
 
-    elif option == "3":
+    elif option == "6":
         pub(client, "ecosort/parqueo/talanquera/alerta", {
             "timestamp": ts(),
             "alerta_parqueo_lleno": True,
         })
+        
+    elif option == "7":
+        pub(client, "ecosort/parqueo/talanquera/alerta", {
+            "timestamp": ts(),
+            "alerta_parqueo_lleno": False,
+        })
 
-    elif option == "4":
+    elif option == "8":
+        pub(client, "ecosort/acceso/puerta/estado", {
+            "timestamp": ts(),
+            "puerta_abierta": True,
+        })
+        
+    elif option == "9":
         pub(client, "ecosort/acceso/puerta/estado", {
             "timestamp": ts(),
             "puerta_abierta": False,
         })
 
-    elif option == "5":
+    elif option == "10":
         pub(client, "ecosort/acceso/puerta/alarma", {
             "timestamp": ts(),
             "alerta_rfid": True,
         })
+        
+    elif option == "11":
+        pub(client, "ecosort/acceso/puerta/alarma", {
+            "timestamp": ts(),
+            "alerta_rfid": False,
+        })
 
-    elif option == "6":
+    elif option == "12":
         pub(client, "ecosort/procesamiento/bandas/principal", {
             "timestamp": ts(),
             "banda_principal": True,
         })
+        
+    elif option == "13":
+        pub(client, "ecosort/procesamiento/bandas/principal", {
+            "timestamp": ts(),
+            "banda_principal": False,
+        })
 
-    elif option == "7":
+    elif option == "14":
         pub(client, "ecosort/procesamiento/bandas/plastico", {
             "timestamp": ts(),
             "banda_plastico": True,
         })
+        
+    elif option == "15":
+        pub(client, "ecosort/procesamiento/bandas/plastico", {
+            "timestamp": ts(),
+            "banda_plastico": False,
+        })
 
-    elif option == "8":
+    elif option == "16":
         pub(client, "ecosort/procesamiento/bandas/vidrio", {
             "timestamp": ts(),
             "banda_vidrio": True,
         })
+        
+    elif option == "17":
+        pub(client, "ecosort/procesamiento/bandas/vidrio", {
+            "timestamp": ts(),
+            "banda_vidrio": False,
+        })
 
-    elif option == "9":
+    elif option == "18":
         pub(client, "ecosort/procesamiento/bandas/metal", {
             "timestamp": ts(),
             "banda_metal": True,
         })
+        
+    elif option == "19":
+        pub(client, "ecosort/procesamiento/bandas/metal", {
+            "timestamp": ts(),
+            "banda_metal": False,
+        })
+        
+    elif option == "20":
+        pub(client, "ecosort/clasificador/material/detectado", {
+            "timestamp": ts(),
+            "codigo_material": 0,
+        })
+        
+    elif option == "21":
+        pub(client, "ecosort/clasificador/material/detectado", {
+            "timestamp": ts(),
+            "codigo_material": 1,
+        })
 
-    elif option == "10":
+    elif option == "22":
         pub(client, "ecosort/clasificador/material/detectado", {
             "timestamp": ts(),
             "codigo_material": 2,
         })
 
-    elif option == "11":
+    elif option == "23":
         pub(client, "ecosort/clasificador/material/resultado", {
             "timestamp": ts(),
             "linea": "plastico",
             "resultado": "aprobado",
             "medicion": 85.4,
+            "transparencia": 0,
+        })
+        
+    elif option == "24":
+        pub(client, "ecosort/clasificador/material/resultado", {
+            "timestamp": ts(),
+            "linea": "plastico",
+            "resultado": "rechazado",
+            "medicion": 10.4,
+            "transparencia": 0,
+        })
+        
+    elif option == "25":
+        pub(client, "ecosort/clasificador/material/resultado", {
+            "timestamp": ts(),
+            "linea": "vidrio",
+            "resultado": "aprobado",
+            "medicion": 0,
             "transparencia": 0.92,
         })
+        
+    elif option == "26":
+        pub(client, "ecosort/clasificador/material/resultado", {
+            "timestamp": ts(),
+            "linea": "vidrio",
+            "resultado": "rechazado",
+            "medicion": 0,
+            "transparencia": 0.10,
+        })
+        
+    elif option == "27":
+        pub(client, "ecosort/clasificador/material/resultado", {
+            "timestamp": ts(),
+            "linea": "metal",
+            "resultado": "aprobado",
+            "medicion": 85.4,
+            "transparencia": 0,
+        })
+        
+    elif option == "28":
+        pub(client, "ecosort/clasificador/material/resultado", {
+            "timestamp": ts(),
+            "linea": "metal",
+            "resultado": "rechazado",
+            "medicion": 10.4,
+            "transparencia": 0,
+        })
 
-    elif option == "12":
+    elif option == "29":
         pub(client, "ecosort/seguridad/alarma/humo", {
             "timestamp": ts(),
             "alerta_humo": True,
             "umbral": 450,
+        })
+   
+    elif option == "30":
+        pub(client, "ecosort/seguridad/alarma/humo", {
+            "timestamp": ts(),
+            "alerta_humo": False,
+            "umbral": 20,
         })
 
     else:

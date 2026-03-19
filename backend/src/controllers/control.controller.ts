@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { publishMqtt } from '../config/mqtt.js';
 import CommandLogModel from '../models/commandLog.model.js';
-import { updateState } from '../state/plantState.js';
+import { updateState, restoreAlmacen, updateAlmacenMax } from '../state/plantState.js';
 import { emitStateUpdate } from '../config/socket.js';
 import { BadRequestError } from '../middlewares/error.middleware.js';
 import { ObjectId } from 'mongodb';
@@ -10,6 +10,7 @@ import type {
   AccesoComandoDTO,
   IluminacionComandoDTO,
   EmergenciaComandoDTO,
+  AlmacenComandoDTO,
 } from '../types/plant.types.js';
 
 // ──────────────────────────────────────────────
@@ -144,6 +145,49 @@ class ControlController {
       await sendCommand(topic, comando, payload, req.user!.userId, req.user!.name);
 
       res.status(200).json({ status: 'success', message: `Modo emergencia ${isActive ? 'activado' : 'desactivado'}.`, topic, payload });
+    } catch (err) { next(err); }
+  }
+
+  // -- Post /api/control/almacen/reset ───────────────
+  /**Payload de ejemplo:
+   * {
+   *   "comando": "reset",
+   *   "linea": "plastico"
+   * }
+   * {
+   *   "comando": "set_max",
+   *   "max_unidades": 30
+   * }
+   */
+  async resetAlmacen(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+
+      const { comando, linea, max_unidades } = req.body as AlmacenComandoDTO;
+      if (!comando) throw new BadRequestError('comando es requerido.');
+
+      const validComandos = ['reset', 'set_max'];
+      if (!validComandos.includes(comando)) throw new BadRequestError(`comando debe ser: ${validComandos.join(' | ')}`);
+
+      // no se devolvera un topic ni payload porque este comando no se envía a la Raspberry, solo afecta el estado interno del backend
+      if (comando === 'reset') {
+
+        if (!linea || !['plastico', 'vidrio', 'metal'].includes(linea)) {
+          throw new BadRequestError('linea es requerida para el comando "reset".');
+        }
+
+        restoreAlmacen(linea);
+        emitStateUpdate();
+      }
+
+      if (comando === 'set_max') {
+        if (typeof max_unidades !== 'number' || max_unidades <= 0) {
+          throw new BadRequestError('max_unidades debe ser un número positivo.');
+        }
+        updateAlmacenMax(max_unidades);
+        emitStateUpdate();
+      }
+      
+      res.status(200).json({ status: 'success', message: 'Almacén reiniciado.' });
     } catch (err) { next(err); }
   }
 }

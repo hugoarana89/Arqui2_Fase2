@@ -14,5 +14,6 @@ router.post('/linea',       (req, res, next) => ControlController.controlLinea(r
 router.post('/acceso',      (req, res, next) => ControlController.controlAcceso(req, res, next));
 router.post('/iluminacion', (req, res, next) => ControlController.controlIluminacion(req, res, next));
 router.post('/emergencia',  (req, res, next) => ControlController.controlEmergencia(req, res, next));
+router.post('/almacen/reset', (req, res, next) => ControlController.resetAlmacen(req, res, next));
 
 export default router;

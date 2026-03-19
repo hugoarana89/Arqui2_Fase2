@@ -1,7 +1,7 @@
 import type {
   PlantState, SensorEvent, ClassificationResult,
-  CommandLog, ClassificationStats,
-  LineaComando, AccesoComando, IluminacionComando, EmergenciaComando,
+  CommandLog, ClassificationStats, LineaComando,
+  AccesoComando, IluminacionComando, EmergenciaComando, AlmacenComando
 } from '../types/plant.types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
@@ -39,6 +39,11 @@ export const controlService = {
     fetch(`${BASE_URL}/control/emergencia`, {
       method: 'POST', headers: authHeaders(), body: JSON.stringify(payload),
     }).then(handleResponse<{ status: string; message: string }>),
+
+  resetAlmacen: (payload: AlmacenComando) =>
+    fetch(`${BASE_URL}/control/almacen/reset`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(payload),
+    }).then(handleResponse<{ status: string; message: string }>),
 };
 
 // ── Monitoring (GET) ───────────────────────────
@@ -50,7 +55,7 @@ export const monitoringService = {
   getEvents: (params?: { category?: string; limit?: number }) => {
     const q = new URLSearchParams();
     if (params?.category) q.set('category', params.category);
-    if (params?.limit)    q.set('limit', String(params.limit));
+    if (params?.limit) q.set('limit', String(params.limit));
     return fetch(`${BASE_URL}/monitoring/events?${q}`, { headers: authHeaders() })
       .then(handleResponse<{ status: string; count: number; data: SensorEvent[] }>);
   },
