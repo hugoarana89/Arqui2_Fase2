@@ -29,3 +29,11 @@ node_modules/
 # =============================
 .DS_Store
 Thumbs.db
+
+
+# =============================
+# PYTHON
+# =============================
+
+raspberry/.venv
+raspberry/venv

@@ -72,7 +72,7 @@ const NavBar = () => {
       icon: <LayoutDashboard size={22} />,
       label: "Panel de Control",
     },
-    { to: "/graphs", icon: <BarChart3 size={22} />, label: "Gráficas" },
+    { to: "/graphs", icon: <BarChart3 size={22} />, label: "Grafana" },
     { to: "/historical", icon: <History size={22} />, label: "Historial" },
     { to: "/profile", icon: <User size={22} />, label: "Perfil" },
   ];

@@ -12,7 +12,7 @@
 ## Diagrama de base de datos
 
 <div align="center">
-  <img src="img/database.jpg" alt="Diagrama de base de datos de proyecto EcoSort." width="1000">
+  <img src="img/database.svg" alt="Diagrama de base de datos de proyecto EcoSort." width="1000">
   <p><i>Figura 2: Diagrama de base de datos de proyecto EcoSort.</i></p>
 </div>
 

@@ -1,0 +1,1319 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 10,
+      "panels": [],
+      "title": "Métricas de Producción",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "plastico",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "vidrio",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "metal",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/materiales-por-linea?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Materiales Procesados por Línea",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "throughput",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/throughput?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Throughput del Sistema",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "plastico"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "vidrio"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "metal"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 13
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "plastico",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "vidrio",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "metal",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/clasificador-color?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Detecciones del Clasificador por Tipo de Material",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 2,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 13
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [
+            "max"
+          ],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "parqueos_ocupados",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/parqueos-ocupacion?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Ocupación de Parqueos",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 20,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "eventos_sensores",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "clasificaciones",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "comandos_enviados",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/actividad-sistema?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Actividad del Sistema",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "always",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alarmas_humo"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "paros_emergencia"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alertas_rfid"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "alertas_parqueo_lleno"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "alarmas_humo",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "alertas_rfid",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "alertas_parqueo_lleno",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[3].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[3].datapoints[*][0]",
+              "name": "paros_emergencia",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "D",
+          "urlPath": "/api/grafana/eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Eventos Críticos",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 37
+      },
+      "id": 14,
+      "panels": [],
+      "title": "Indicadores Clave (KPIs)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": [
+                "sum"
+              ]
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Aprobados"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Rechazados"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 24,
+        "x": 0,
+        "y": 38
+      },
+      "id": 16,
+      "options": {
+        "cellHeight": "sm",
+        "enablePagination": false,
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "cacheDurationSeconds": 0,
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].rows[*][0]",
+              "name": "Línea",
+              "type": "string"
+            },
+            {
+              "jsonPath": "$[0].rows[*][1]",
+              "name": "Aprobados",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$[0].rows[*][2]",
+              "name": "Rechazados",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$[0].rows[*][3]",
+              "name": "Total procesados",
+              "type": "number"
+            },
+            {
+              "jsonPath": "$[0].rows[*][4]",
+              "name": "Tasa aprobación",
+              "type": "string"
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/kpis-produccion?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "KPIs de Producción por Línea",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "footer": {
+              "reducers": [
+                "sum"
+              ]
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cantidad"
+            },
+            "properties": [
+              {
+                "id": "custom.align",
+                "value": "center"
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": 0
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 1
+                    },
+                    {
+                      "color": "red",
+                      "value": 5
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "mode": "gradient",
+                  "type": "color-background"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 11,
+        "w": 24,
+        "x": 0,
+        "y": 45
+      },
+      "id": 18,
+      "options": {
+        "cellHeight": "sm",
+        "enablePagination": false,
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Cantidad"
+          }
+        ]
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "cacheDurationSeconds": 0,
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].rows[*][0]",
+              "name": "Evento crítico",
+              "type": "string"
+            },
+            {
+              "jsonPath": "$[0].rows[*][1]",
+              "name": "Cantidad",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryParams": "",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/kpis-eventos-criticos?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "KPIs de Eventos Críticos",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 42,
+  "tags": [
+    "EcoSort",
+    "produccion",
+    "monitoreo"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-7d",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "EcoSort - Dashboard de Monitoreo",
+  "uid": "ecosort-dashboard-v4",
+  "version": 2,
+  "weekStart": ""
+}
