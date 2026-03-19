@@ -1313,7 +1313,14 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "EcoSort - Dashboard de Monitoreo",
-  "uid": "ecosort-dashboard-v4",
+  "uid": "ecosort-dashboard-v2",
   "version": 2,
-  "weekStart": ""
+  "weekStart": "",
+  "__publicDashboard": {
+    "uid": "ba3d0c85359f433c94719f61ca99ad84",
+    "isEnabled": true,
+    "annotationsEnabled": true,
+    "timeSelectionEnabled": true,
+    "share": "public"
+  }
 }

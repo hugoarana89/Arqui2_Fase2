@@ -2,6 +2,7 @@ import React from "react";
 import GrafanaDashboard from "../components/GrafanaDashboard";
 
 const Graphs: React.FC = () => {
+  console.log("Dashboard URL:", import.meta.env.VITE_GRAFANA_DASHBOARD_URL); // Verificar que la URL se carga correctamente
   return (
     <div>
       <h1>Graphs Page</h1>

@@ -40,7 +40,7 @@ export interface PlantState {
   _unidades_plastico: number;
   _unidades_vidrio: number;
   _unidades_metal: number;
-  readonly almacen_max: number;
+  almacen_max: number;
 
   // Timestamp de la última actualización
   last_updated: string;
@@ -122,3 +122,36 @@ export const incrementAlmacen = (linea: 'plastico' | 'vidrio' | 'metal'): number
   state.last_updated = new Date().toISOString();
   return state.almacen_metal;
 };
+
+/**
+ * Reestablece el contador de unidades y porcentaje de una línea (por ejemplo, al vaciar el contenedor).
+ */
+export const restoreAlmacen = (linea: 'plastico' | 'vidrio' | 'metal'): void => {
+  if (linea === 'plastico') {
+    state._unidades_plastico = 0;
+    state.almacen_plastico = 0;
+    state.last_updated = new Date().toISOString();
+    return;
+  }
+  if (linea === 'vidrio') {
+    state._unidades_vidrio = 0;
+    state.almacen_vidrio = 0;
+    state.last_updated = new Date().toISOString();
+    return;
+  }
+  // metal
+  state._unidades_metal = 0;
+  state.almacen_metal = 0;
+  state.last_updated = new Date().toISOString();
+}
+/**
+ * Actualizar almacen_max y recalcular porcentajes en base a los contadores actuales.
+ */
+export const updateAlmacenMax = (nuevoMax: number): void => {
+  state.almacen_max = nuevoMax;
+  // Recalcular porcentajes con el nuevo máximo
+  state.almacen_plastico = Math.round((state._unidades_plastico / nuevoMax) * 100);
+  state.almacen_vidrio = Math.round((state._unidades_vidrio / nuevoMax) * 100);
+  state.almacen_metal = Math.round((state._unidades_metal / nuevoMax) * 100);
+  state.last_updated = new Date().toISOString();
+}
