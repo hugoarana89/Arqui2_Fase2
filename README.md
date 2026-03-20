@@ -126,22 +126,22 @@ Crea un archivo llamado `.env` dentro de la carpeta `frontend/` con las siguient
 VITE_API_URL=http://localhost:4000/api
 
 # URL del dashboard público de Grafana (generado desde la interfaz de Grafana)
-VITE_GRAFANA_DASHBOARD_URL=http://localhost:3000/d/ecosort-dashboard/ecosort-operational-dashboard?orgId=1&refresh=10s&kiosk
+VITE_GRAFANA_DASHBOARD_URL=http://localhost:3000/d/ecosort-dashboard-v2/ecosort-dashboard-de-monitoreo?orgId=1&from=now-7d&to=now&timezone=browser&refresh=10s&kiosk
 ```
 
 ## 🐳 Ejecución con Docker
 
-Una vez que hayas configurado los archivos `.env`, puedes levantar toda la infraestructura (Backend, Frontend, MQTT Broker, Grafana) con un solo comando.
+Una vez que se haya configurado los archivos `.env`, se puede levantar toda la infraestructura (Backend, Frontend, MQTT Broker, Grafana) con un solo comando.
 
-1.  **Clona el repositorio:**
+### 1.  **Clona el repositorio:**
     ```bash
     git clone https://github.com/tu-usuario/ecosort.git
     cd ecosort
     ```
 
-2.  **Crea los archivos `.env`** en las carpetas `backend` y `frontend` con los valores correctos.
+### 2.  **Crea los archivos `.env`** en las carpetas `backend` y `frontend` con los valores correctos.
 
-3.  **Ejecuta Docker Compose:**
+### 3.  **Ejecuta Docker Compose:**
     ```bash
     docker-compose up --build
     ```
@@ -151,7 +151,7 @@ Una vez que hayas configurado los archivos `.env`, puedes levantar toda la infra
     *   El broker MQTT en: `mqtt://localhost:1883`
     *   Grafana en: `http://localhost:3000` (usuario: `admin`, contraseña: `admin` la primera vez)
 
-4. **Ejecutar en la nube:**
+### 4. **Ejecutar en la nube:**
 
 🔥 Los puertos que se estan usando y se deben de abrir en el servio de nube son:
 
@@ -165,6 +165,14 @@ Una vez que hayas configurado los archivos `.env`, puedes levantar toda la infra
 
 ---
 
+### 5. **Configuración de archivo python para raspberry**
+
+Cuando se quiera ejecutar en la nube el proyecto reemplazar localhost en el archivo raspberry/Ecosort.py por la ip del servidor pero sin colocar "http://"
+
+```
+MQTT_HOST = "localhost"
+MQTT_HOST = "34.9.126.151"
+```
 
 ## 📁 Estructura del Proyecto
 
