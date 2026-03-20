@@ -37,3 +37,5 @@ Thumbs.db
 
 raspberry/.venv
 raspberry/venv
+raspberry/prueba-simple/.venv
+raspberry/prueba-simple/venv
