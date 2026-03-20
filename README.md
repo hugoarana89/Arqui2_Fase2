@@ -151,6 +151,21 @@ Una vez que hayas configurado los archivos `.env`, puedes levantar toda la infra
     *   El broker MQTT en: `mqtt://localhost:1883`
     *   Grafana en: `http://localhost:3000` (usuario: `admin`, contraseña: `admin` la primera vez)
 
+4. **Ejecutar en la nube:**
+
+🔥 Los puertos que se estan usando y se deben de abrir en el servio de nube son:
+
+| Servicio | Puerto interno | Puerto externo | Uso                |
+| -------- | -------------- | -------------- | ------------------ |
+| Frontend | 80             | 80             | Web pública        |
+| Backend  | 4000           | 4000           | API                |
+| MQTT     | 1883           | 1883           | IoT / mensajes     |
+| MQTT WS  | 9001           | 9001           | MQTT vía WebSocket |
+| Grafana  | 3000           | 3000           | Dashboard          |
+
+---
+
+
 ## 📁 Estructura del Proyecto
 
 ```
