@@ -15,7 +15,7 @@ import paho.mqtt.client as mqtt
 # ──────────────────────────────────────────────
 #  CONFIGURACIÓN — cambiar a ip en producción
 # ──────────────────────────────────────────────
-MQTT_HOST = "localhost"
+MQTT_HOST = "localhost"   # Cambia a la IP de tu servidor Mosquitto si no es local
 MQTT_PORT = 1883
 MQTT_USER = ""          # Dejar vacío si no hay autenticación
 MQTT_PASS = ""          # Dejar vacío si no hay autenticación
