@@ -20,8 +20,8 @@ import serial
 # ══════════════════════════════════════════════════════════════
 
 # Arduino
-ARDUINO_PORT = "/dev/ttyUSB0"   # Windows: "COM3"
-BAUD_RATE    = 115200
+ARDUINO_PORT = "COM6"   # Nombre del puerto serial, ejp: /dev/ttyUSB0 en Linux o COM3 en Windows
+BAUD_RATE    = 115200 # En el arduinio debe estar configurado con la misma velocidad de baudios
 TIMEOUT      = 1                # segundos
 
 # MQTT
@@ -220,57 +220,47 @@ def on_serial_message(message: str) -> None:
                 puerta_alarma = temp
                 pub(mqtt_client, "ecosort/acceso/puerta/alarma", {
                     "timestamp": ts(),
-                    "alerta_rfid_activada": puerta_alarma,
+                    "alerta_rfid": puerta_alarma,
                 })
 
-        elif key == "banda_principal_activa":
+        elif key == "banda_principal":
             temp = to_bool(value)
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
             if banda_principal_activa != temp:
                 banda_principal_activa = temp
                 pub(mqtt_client, "ecosort/procesamiento/bandas/principal", {
                     "timestamp": ts(),
-                    "banda_principal_activa": banda_principal_activa,
+                    "banda_principal": banda_principal_activa,
                 })
 
-        elif key == "banda_plastico_activa":
+        elif key == "banda_plastico":
             temp = to_bool(value)
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
             if banda_plastico_activa != temp:
                 banda_plastico_activa = temp
                 pub(mqtt_client, "ecosort/procesamiento/bandas/plastico", {
                     "timestamp": ts(),
-                    "banda_plastico_activa": banda_plastico_activa,
+                    "banda_plastico": banda_plastico_activa,
                 })
 
-        elif key == "banda_vidrio_activa":
+        elif key == "banda_vidrio":
             temp = to_bool(value)
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
             if banda_vidrio_activa != temp:
                 banda_vidrio_activa = temp
                 pub(mqtt_client, "ecosort/procesamiento/bandas/vidrio", {
                     "timestamp": ts(),
-                    "banda_vidrio_activa": banda_vidrio_activa,
+                    "banda_vidrio": banda_vidrio_activa,
                 })
 
-        elif key == "banda_metal_activa":
+        elif key == "banda_metal":
             temp = to_bool(value)
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
             if banda_metal_activa != temp:
                 banda_metal_activa = temp
                 pub(mqtt_client, "ecosort/procesamiento/bandas/metal", {
                     "timestamp": ts(),
-                    "banda_metal_activa": banda_metal_activa,
-                })
-
-        elif key == "material_detectado":
-            temp = int(value)
-            # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
-            if material_detectado != temp:
-                material_detectado = temp
-                pub(mqtt_client, "ecosort/clasificador/material/detectado", {
-                    "timestamp": ts(),
-                    "codigo_material": material_detectado,
+                    "banda_metal": banda_metal_activa,
                 })
 
         elif key == "alarma_humo":
@@ -282,12 +272,24 @@ def on_serial_message(message: str) -> None:
                     "timestamp": ts(),
                     "alerta_emergencia_activa": seguridad_emergencia,
                 })
+                
+        elif key == "material_detectado":
+            temp = int(value)
+            # Aqui si se puede repetir el valor por ejemplo se detecta plastico y despues ingresa otro plastico
+            # Validar que el valor sea 0: platico, 1: vidrio, 2: metal, otros no son válidos
+            if temp not in [0, 1, 2]:
+                return
+            material_detectado = temp
+            pub(mqtt_client, "ecosort/clasificador/material/detectado", {
+                "timestamp": ts(),
+                "codigo_material": material_detectado,
+            })
 
         else:
             print(f"⚠️  Clave serial desconocida: '{key}'")
 
-    # ── 4 partes: "resultado_clasificador,linea,resultado,medicion" ──
-    elif len(parts) == 4 and parts[0] == "resultado_clasificador":
+    # ── 4 partes: "resultado,linea,resultado,medicion" ──
+    elif len(parts) == 4 and parts[0] == "resultado":
         _, linea, resultado, medicion_str = parts
 
         try:
@@ -367,6 +369,7 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_mqtt_message(client, userdata, msg):
+    # debugear mensajes MQTT recibidos desde el backend, traducirlos a comandos seriales para el Arduino
     """
     Recibe un comando MQTT del backend y lo traduce a un mensaje serial para el Arduino.
 
@@ -392,7 +395,7 @@ def on_mqtt_message(client, userdata, msg):
     ):
         linea  = payload.get("linea", topic.split("/")[-1])
         activa = "true" if comando == "reanudar" else "false"
-        serial_comm.send(f"banda_{linea}_activa,{activa}")
+        serial_comm.send(f"banda_{linea},{activa}")
 
     # ── Puerta de acceso ─────────────────────────────────────
     elif topic == "ecosort/comandos/acceso/puerta":

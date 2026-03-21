@@ -1,0 +1,4 @@
+Ejecutar:
+python setup.py
+
+# Esta prueba se hizo utilizando comunicación serial emulando puertos con el programa: com0com.

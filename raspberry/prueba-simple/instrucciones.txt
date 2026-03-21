@@ -1,3 +1,6 @@
 Ejecutar:
 
 python setup_env.py
+
+
+# Esta prueba simplemente manda comandos al backend
