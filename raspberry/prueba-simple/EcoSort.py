@@ -19,7 +19,7 @@ MQTT_HOST = "localhost"   # Cambia a la IP de tu servidor Mosquitto si no es loc
 MQTT_PORT = 1883
 MQTT_USER = ""          # Dejar vacío si no hay autenticación
 MQTT_PASS = ""          # Dejar vacío si no hay autenticación
-MQTT_CLIENT_ID = "ecosort_python"
+MQTT_CLIENT_ID = f"ecosort_python_{random.randint(1000, 9999)}"
 
 # ──────────────────────────────────────────────
 #  HELPERS

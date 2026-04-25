@@ -29,7 +29,7 @@ MQTT_HOST      = "34.9.126.151"
 MQTT_PORT      = 1883
 MQTT_USER      = ""
 MQTT_PASS      = ""
-MQTT_CLIENT_ID = "ecosort_python"
+MQTT_CLIENT_ID = f"ecosort_python_{random.randint(1000, 9999)}"
 
 # ══════════════════════════════════════════════════════════════
 #  ESTADO GLOBAL
