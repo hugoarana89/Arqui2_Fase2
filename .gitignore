@@ -41,4 +41,7 @@ raspberry/prueba-simple/.venv
 raspberry/prueba-simple/venv
 raspberry/prueba-serial/.venv
 raspberry/prueba-serial/venv
+Fase3/.venv
+.python-version
+__pycache__/
 
