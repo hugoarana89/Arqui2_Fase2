@@ -5,6 +5,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 
+import platesRoutes from './routes/plates.routes.js';
 import DatabaseConnection from './config/database.js';
 import { initMqttClient } from './config/mqtt.js';
 import { initSocketServer } from './config/socket.js';
@@ -39,6 +40,10 @@ app.use('/api/grafana',    grafanaRoutes);
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'EcoSort API operativa 🚀' });
 });
+
+app.use('/api/plates', platesRoutes);
+
+
 
 // ── Manejadores de error ──────────────────────
 app.use(notFoundHandler);
