@@ -69,8 +69,8 @@ OPCIONES = [
     (27,  "Resultado metal    → aprobado  (0.91)",     "resultado,metal,aprobado,0.91"),
     (28,  "Resultado metal    → rechazado (0.10)",     "resultado,metal,rechazado,0.10"),
     # ── Seguridad ────────────────────────────────────────────
-    (29,  "Alarma humo → true  (emergencia)",          "alarma_humo,true"),
-    (30,  "Alarma humo → false (normal)",              "alarma_humo,false"),
+    (29,  "Alarma humo → true  (emergencia)",          "alarma_humo,true,0.95"),
+    (30,  "Alarma humo → false (normal)",              "alarma_humo,false,0.10"),
 ]
 
 # Mapa rápido número → mensaje serial
@@ -90,10 +90,9 @@ def imprimir_menu() -> None:
         ("🚧 TALANQUERA",       range( 4,  8)),
         ("🚪 PUERTA",           range( 8, 12)),
         ("⚙️  BANDAS",           range(12, 20)),
-        ("🔍 MATERIAL DETECT.", range(20, 24)),
-        ("📊 RESULTADO CLASIF.",range(24, 30)),
-        ("🔥 SEGURIDAD",        range(30, 32)),
-        ("💡 ILUMINACIÓN",       range(32, 34)),
+        ("🔍 MATERIAL DETECT.", range(20, 23)),
+        ("📊 RESULTADO CLASIF.",range(23, 29)),
+        ("🔥 SEGURIDAD",        range(29, 31))
     ]
 
     for titulo, rango in secciones:

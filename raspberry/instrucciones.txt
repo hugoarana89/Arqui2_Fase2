@@ -1,3 +1,7 @@
 Ejecutar:
 
 python setup.py
+
+Configurar en el archivo "ecoSort_raspberry.py" la linea 23 y 25:
+ARDUINO_PORT = "COM6"   # Nombre del puerto serial del arduino, ejp: /dev/ttyUSB0 en Linux o COM3 en Windows
+BAUD_RATE    = 115200 # En el arduinio debe estar configurado con la misma velocidad de baudios

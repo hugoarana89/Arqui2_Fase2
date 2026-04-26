@@ -31,7 +31,7 @@ def main():
     # 4. Instalar dependencias
     print("📥 Instalando dependencias...")
     run_command([python_path, "-m", "pip", "install", "--upgrade", "pip"])
-    run_command([pip_path, "install", "paho-mqtt"])
+    run_command([pip_path, "install", "paho-mqtt==1.6.1"])
     run_command([pip_path, "install", "pyserial"])
 
     print("✅ Entorno listo")

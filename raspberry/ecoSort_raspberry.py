@@ -20,7 +20,7 @@ import serial
 # ══════════════════════════════════════════════════════════════
 
 # Arduino
-ARDUINO_PORT = "COM6"   # Nombre del puerto serial, ejp: /dev/ttyUSB0 en Linux o COM3 en Windows
+ARDUINO_PORT = "COM6"   # Nombre del puerto serial del arduino, ejp: /dev/ttyUSB0 en Linux o COM3 en Windows
 BAUD_RATE    = 115200 # En el arduinio debe estar configurado con la misma velocidad de baudios
 TIMEOUT      = 1                # segundos
 
@@ -36,7 +36,7 @@ MQTT_CLIENT_ID = "ecosort_python"
 # ══════════════════════════════════════════════════════════════
 
 # 🅿️  Parqueo
-num_parqueos_ocupados = 0
+num_parqueos_ocupados = -1
 talanquera_abierta    = False
 talanquera_alerta     = False
 
@@ -54,8 +54,9 @@ banda_metal_activa     = False
 material_detectado    = None
 resultado_clasificador = {"plastico": None, "vidrio": None, "metal": None}
 
-# 🔥 Seguridad
-seguridad_emergencia = False
+# 🚨 Alarma de humo
+alarma_humo_activa = False
+
 
 # ══════════════════════════════════════════════════════════════
 #  HELPERS
@@ -161,7 +162,7 @@ def on_serial_message(message: str) -> None:
     global num_parqueos_ocupados, talanquera_abierta, talanquera_alerta
     global puerta_abierta, puerta_alarma
     global banda_principal_activa, banda_plastico_activa, banda_vidrio_activa, banda_metal_activa
-    global material_detectado, seguridad_emergencia
+    global material_detectado, alarma_humo_activa
 
     if "," not in message:
         print(f"⚠️  Mensaje serial sin formato reconocido: '{message}'")
@@ -174,7 +175,12 @@ def on_serial_message(message: str) -> None:
         key, value = parts[0], parts[1]
 
         if key == "parqueos_ocupados":
-            temp = int(value)
+            try:
+                temp = int(value)
+            except ValueError:
+                print(f"⚠️  parqueos_ocupados valor no entero: '{value}'")
+                return
+            
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
             if num_parqueos_ocupados != temp:
                 num_parqueos_ocupados = temp
@@ -262,23 +268,20 @@ def on_serial_message(message: str) -> None:
                     "timestamp": ts(),
                     "banda_metal": banda_metal_activa,
                 })
-
-        elif key == "alarma_humo":
-            temp = to_bool(value)
-            # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
-            if seguridad_emergencia != temp:
-                seguridad_emergencia = temp
-                pub(mqtt_client, "ecosort/seguridad/alarma/humo", {
-                    "timestamp": ts(),
-                    "alerta_emergencia_activa": seguridad_emergencia,
-                })
                 
         elif key == "material_detectado":
-            temp = int(value)
             # Aqui si se puede repetir el valor por ejemplo se detecta plastico y despues ingresa otro plastico
             # Validar que el valor sea 0: platico, 1: vidrio, 2: metal, otros no son válidos
-            if temp not in [0, 1, 2]:
+            try:
+                temp = int(value)
+            except ValueError:
+                print(f"⚠️  material_detectado valor no entero: '{value}'")
                 return
+            
+            if temp not in [0, 1, 2]:
+                print(f"⚠️  material_detectado valor fuera de rango: {temp}")
+                return
+            
             material_detectado = temp
             pub(mqtt_client, "ecosort/clasificador/material/detectado", {
                 "timestamp": ts(),
@@ -288,7 +291,27 @@ def on_serial_message(message: str) -> None:
         else:
             print(f"⚠️  Clave serial desconocida: '{key}'")
 
-    # ── 4 partes: "resultado,linea,resultado,medicion" ──
+    # 3 partes:
+    
+    elif len(parts) == 3 and parts[0] == "alarma_humo":
+        _, value, medicion_str = parts
+        temp = to_bool(value)
+        # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
+        if alarma_humo_activa != temp:
+            alarma_humo_activa = temp
+            try:
+                medicion = float(medicion_str)
+            except ValueError:
+                print(f"❌ Medición de humo no numérica: '{medicion_str}'")
+                medicion = 0.0
+
+            pub(mqtt_client, "ecosort/seguridad/alarma/humo", {
+                "timestamp": ts(),
+                "alerta_humo": alarma_humo_activa,
+                "umbral": medicion,
+            })
+    
+    # 4 partes: "resultado,linea,resultado,medicion" ──
     elif len(parts) == 4 and parts[0] == "resultado":
         _, linea, resultado, medicion_str = parts
 
