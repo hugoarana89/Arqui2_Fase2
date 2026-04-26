@@ -1,0 +1,9 @@
+fastapi
+python-multipart
+uvicorn[standard]
+numpy
+opencv-python-headless
+pydantic
+huggingface_hub
+ultralytics
+requests
