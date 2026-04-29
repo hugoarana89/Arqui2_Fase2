@@ -1,7 +1,43 @@
-Ejecutar:
+INSTALACIÓN Y CONFIGURACIÓN
+============================
 
-python setup.py
+1. Ejecutar setup.py:
+   python setup.py
 
-Configurar en el archivo "ecoSort_raspberry.py" la linea 23 y 25:
-ARDUINO_PORT = "COM6"   # Nombre del puerto serial del arduino, ejp: /dev/ttyUSB0 en Linux o COM3 en Windows
-BAUD_RATE    = 115200 # En el arduinio debe estar configurado con la misma velocidad de baudios
+2. Configurar parámetros en "ecoSort_raspberry.py":
+   
+   ARDUINO_PORT = "COM6"   # Nombre del puerto serial del arduino
+                           # En Linux: /dev/ttyUSB0, /dev/ttyACM0, etc.
+                           # En Windows: COM3, COM6, etc.
+   
+   BAUD_RATE = 115200      # Debe coincidir con la configuración del Arduino
+   
+   WEBCAM_DEVICE_ID = 0    # ID de la cámara (0 = cámara predeterminada)
+
+3. Configurar el servicio ML (opcional, si se usa captura de placas):
+   
+   Copiar .env.example a .env:
+   cp .env.example .env
+   
+   Editar .env con los valores correctos:
+   ML_PLATES_API_URL=http://localhost:8000
+   
+   En Docker Compose (si está en la misma red):
+   ML_PLATES_API_URL=http://ml-plates:8000
+
+4. Ejecutar:
+   python ecoSort_raspberry.py
+
+CARACTERÍSTICAS NUEVAS
+======================
+
+✅ Captura de webcam: Cuando se detecta material, automáticamente se captura
+   una imagen y se envía al servicio ML para reconocimiento de placas.
+
+✅ Integración con ML: Los resultados de placa detectada se publican en MQTT
+   en el topic: ecosort/acceso/placa/detectada
+
+⚙️  Configuración:
+   - WEBCAM_DEVICE_ID: ID del dispositivo de cámara (0 = predeterminada)
+   - CAPTURE_RETRIES: Número de intentos de captura (por defecto: 3)
+   - CAPTURE_TIMEOUT: Tiempo máximo de espera (por defecto: 5 segundos)
