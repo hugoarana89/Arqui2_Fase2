@@ -57,6 +57,30 @@ export interface MaterialResultadoPayload {
 export interface HumoPayload { timestamp: string; alerta_humo: boolean; umbral: number }
 
 // ──────────────────────────────────────────────
+//  Verificación EPP (backend ↔ servicio ML EPP)
+// ──────────────────────────────────────────────
+export interface EppVerifyRequestDTO {
+  imageBase64: string;
+  source?: string;
+}
+
+export interface EppServiceResponse {
+  access_granted: boolean;
+  missing_mandatory: string[];
+  detections: Record<string, number>;
+  annotated_image_base64: string;
+}
+
+export interface EppVerificationDocument {
+  _id?: ObjectId;
+  access_granted: boolean;
+  missing_mandatory: string[];
+  detections: Record<string, number>;
+  source: string;
+  createdAt: Date;
+}
+
+// ──────────────────────────────────────────────
 //  Payloads HTTP de comandos (frontend → backend)
 // ──────────────────────────────────────────────
 export interface LineaComandoDTO {
