@@ -15,6 +15,7 @@ import authRoutes       from './routes/auth.routes.js';
 import controlRoutes    from './routes/control.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
 import grafanaRoutes    from './routes/grafana.routes.js';
+import eppRoutes        from './routes/epp.routes.js';
 import { notFoundHandler, globalErrorHandler } from './middlewares/error.middleware.js';
 
 dotenv.config();
@@ -36,6 +37,7 @@ app.use('/api/auth',       authRoutes);
 app.use('/api/control',    controlRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/grafana',    grafanaRoutes);
+app.use('/api/epp',        eppRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'EcoSort API operativa 🚀' });
@@ -92,6 +94,11 @@ async function bootstrap(): Promise<void> {
     console.log(`   POST  /api/grafana/kpis-produccion`);
     console.log(`   POST  /api/grafana/kpis-eventos-criticos`);
     console.log(`   POST  /api/grafana/actividad-sistema`);
+
+    console.log(`\n🦺 Endpoints EPP:`);
+    console.log(`   POST  /api/epp/verify               (dispositivo)`);
+    console.log(`   GET   /api/epp/verifications        🔒`);
+    console.log(`   GET   /api/epp/health`);
 
     console.log(`\n🔌 WebSocket en ws://localhost:${PORT} (evento: state_update)`);
   });

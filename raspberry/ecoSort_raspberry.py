@@ -2,18 +2,25 @@
 """
 EcoSort — Raspberry Pi
 Comunicación serial con Arduino + MQTT con backend Node.js.
+Captura de webcam y envío a servicio ML de reconocimiento de placas.
 
 Requiere:
     pip install paho-mqtt
     pip install pyserial
+    pip install opencv-python
+    pip install requests
 """
 
 import json
+import base64
 import time
 import threading
 from datetime import datetime, timezone
 import paho.mqtt.client as mqtt
 import serial
+import cv2
+import requests
+import os
 
 # ══════════════════════════════════════════════════════════════
 #  CONFIGURACIÓN
@@ -30,6 +37,15 @@ MQTT_PORT      = 1883
 MQTT_USER      = ""
 MQTT_PASS      = ""
 MQTT_CLIENT_ID = "ecosort_python"
+
+# 🎥 Webcam y Servicio ML
+WEBCAM_DEVICE_ID    = 0              # ID de la cámara (0 = cámara predeterminada)
+ML_PLATES_API_URL   = os.getenv("ML_PLATES_API_URL", "http://localhost:8000")  # URL del servicio ML
+ML_PLATES_ENDPOINT  = f"{ML_PLATES_API_URL}/detect-plate"
+BACKEND_API_URL     = os.getenv("BACKEND_API_URL", "http://localhost:4000")
+BACKEND_EPP_ENDPOINT = f"{BACKEND_API_URL}/api/epp/verify"
+CAPTURE_TIMEOUT     = 5              # segundos para timeout de la captura
+CAPTURE_RETRIES     = 3              # intentos de captura
 
 # ══════════════════════════════════════════════════════════════
 #  ESTADO GLOBAL
@@ -83,8 +99,189 @@ def pub(client: mqtt.Client, topic: str, payload: dict) -> None:
 
 
 # ══════════════════════════════════════════════════════════════
+#  SERVICIO ML DE RECONOCIMIENTO DE PLACAS
+# ══════════════════════════════════════════════════════════════
+
+def send_frame_to_ml(frame_bytes: bytes) -> dict | None:
+    """
+    Envía un frame de imagen al servicio ML de reconocimiento de placas.
+    Retorna el resultado de la detección o None si hay error.
+    """
+    if not frame_bytes:
+        print("⚠️  No hay datos de frame para enviar al ML")
+        return None
+    
+    try:
+        files = {'file': ('frame.jpg', frame_bytes, 'image/jpeg')}
+        response = requests.post(
+            ML_PLATES_ENDPOINT,
+            files=files,
+            timeout=CAPTURE_TIMEOUT
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"  ✅ ML Response: {result}")
+            return result
+        else:
+            print(f"⚠️  Error del servicio ML (status: {response.status_code})")
+            return None
+            
+    except requests.exceptions.Timeout:
+        print(f"⚠️  Timeout al conectar con ML service en {CAPTURE_TIMEOUT}s")
+        return None
+    except requests.exceptions.ConnectionError:
+        print(f"⚠️  No se pudo conectar al servicio ML: {ML_PLATES_ENDPOINT}")
+        return None
+    except Exception as e:
+        print(f"❌ Error al enviar frame al ML: {e}")
+        return None
+
+
+def capture_and_detect_plate(webcam: WebcamCapture, mqtt_client: mqtt.Client) -> dict | None:
+    """
+    Captura un frame de la webcam e intenta detectar una placa.
+    Reintentos configurables en CAPTURE_RETRIES.
+    """
+    for attempt in range(1, CAPTURE_RETRIES + 1):
+        print(f"📸 Intento {attempt}/{CAPTURE_RETRIES} de captura y detección...")
+        
+        frame_bytes = webcam.capture_frame()
+        if not frame_bytes:
+            print(f"⚠️  Intento {attempt}: No se pudo capturar frame")
+            time.sleep(0.5)
+            continue
+        
+        result = send_frame_to_ml(frame_bytes)
+        if result and result.get('success'):
+            plate = result.get('plate')
+            confidence = result.get('confidence', 0)
+            print(f"✅ Placa detectada: {plate} (confianza: {confidence})")
+            
+            # Enviar placa detectada al backend para validación
+            if mqtt_client:
+                pub(mqtt_client, "ecosort/acceso/placa/detectada", {
+                    "timestamp": ts(),
+                    "plate": plate,
+                    "confidence": confidence,
+                    "candidates": result.get('candidates', [])
+                })
+            
+            return result
+        else:
+            print(f"⚠️  Intento {attempt}: Placa no detectada")
+            time.sleep(0.5)
+    
+    print("❌ No se pudo detectar placa después de los reintentos")
+    return None
+
+
+def capture_and_verify_epp(webcam: WebcamCapture) -> dict | None:
+    """
+    Captura un frame de la webcam y lo envía al backend para verificación EPP.
+    El backend actúa como gateway hacia el microservicio de verificación EPP.
+    """
+    for attempt in range(1, CAPTURE_RETRIES + 1):
+        print(f"🦺 Intento {attempt}/{CAPTURE_RETRIES} de verificación EPP...")
+
+        frame_bytes = webcam.capture_frame()
+        if not frame_bytes:
+            print(f"⚠️  Intento {attempt}: No se pudo capturar frame para EPP")
+            time.sleep(0.5)
+            continue
+
+        image_base64 = base64.b64encode(frame_bytes).decode("utf-8")
+
+        try:
+            response = requests.post(
+                BACKEND_EPP_ENDPOINT,
+                json={
+                    "imageBase64": image_base64,
+                    "source": "raspberry",
+                },
+                timeout=CAPTURE_TIMEOUT,
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                data = result.get("data", {}) if isinstance(result, dict) else {}
+                access_granted = data.get("access_granted")
+                missing = data.get("missing_mandatory", [])
+                print(f"✅ EPP verificado. access_granted={access_granted}, missing={missing}")
+                return result
+
+            print(f"⚠️  Backend EPP respondió status {response.status_code}: {response.text}")
+        except requests.exceptions.Timeout:
+            print(f"⚠️  Timeout al conectar backend EPP en {CAPTURE_TIMEOUT}s")
+        except requests.exceptions.ConnectionError:
+            print(f"⚠️  No se pudo conectar al backend EPP: {BACKEND_EPP_ENDPOINT}")
+        except Exception as e:
+            print(f"❌ Error verificando EPP: {e}")
+
+        time.sleep(0.5)
+
+    print("❌ No se pudo completar la verificación EPP")
+    return None
+
+
+# ══════════════════════════════════════════════════════════════
 #  COMUNICACIÓN SERIAL CON ARDUINO
 # ══════════════════════════════════════════════════════════════
+
+# ══════════════════════════════════════════════════════════════
+#  CAPTURA DE WEBCAM
+# ══════════════════════════════════════════════════════════════
+
+class WebcamCapture:
+    """Maneja la captura de imágenes desde la webcam."""
+    
+    def __init__(self, device_id: int = 0):
+        self.device_id = device_id
+        self.cap = None
+        self.running = False
+    
+    def connect(self) -> bool:
+        """Abre la conexión con la webcam."""
+        try:
+            self.cap = cv2.VideoCapture(self.device_id)
+            if not self.cap.isOpened():
+                print(f"❌ No se pudo abrir la webcam (device_id: {self.device_id})")
+                return False
+            print(f"✅ Webcam conectada (device_id: {self.device_id})")
+            return True
+        except Exception as e:
+            print(f"❌ Error al conectar webcam: {e}")
+            return False
+    
+    def capture_frame(self) -> bytes | None:
+        """Captura un frame y lo retorna como bytes JPEG."""
+        if not self.cap or not self.cap.isOpened():
+            print("⚠️  Webcam no está abierta")
+            return None
+        
+        try:
+            ret, frame = self.cap.read()
+            if not ret:
+                print("⚠️  No se pudo capturar frame de la webcam")
+                return None
+            
+            # Codificar frame como JPEG
+            success, buffer = cv2.imencode('.jpg', frame)
+            if not success:
+                print("⚠️  No se pudo codificar el frame")
+                return None
+            
+            return buffer.tobytes()
+        except Exception as e:
+            print(f"❌ Error al capturar frame: {e}")
+            return None
+    
+    def disconnect(self) -> None:
+        """Cierra la conexión con la webcam."""
+        if self.cap:
+            self.cap.release()
+            print("🔌 Webcam desconectada")
+
 
 class SerialCommunicator:
     def __init__(self, port: str, baud_rate: int, timeout: int):
@@ -219,6 +416,16 @@ def on_serial_message(message: str) -> None:
                     "puerta_abierta": puerta_abierta,
                 })
 
+                # Al abrirse la puerta, capturar evidencia y verificar EPP en backend
+                if puerta_abierta and webcam_instance:
+                    print("\n🦺 Puerta abierta - Iniciando verificación EPP...")
+                    epp_thread = threading.Thread(
+                        target=capture_and_verify_epp,
+                        args=(webcam_instance,),
+                        daemon=True,
+                    )
+                    epp_thread.start()
+
         elif key == "puerta_alarma":
             temp = to_bool(value)
             # este if es para solo publicar en MQTT si el valor cambió, evitando spam de mensajes idénticos
@@ -287,6 +494,17 @@ def on_serial_message(message: str) -> None:
                 "timestamp": ts(),
                 "codigo_material": material_detectado,
             })
+            
+            # 📷 TRIGGER: Capturar placa cuando se detecta material en acceso
+            # Este trigger es opcional - comentar si no se desea captura automática
+            if webcam_instance:
+                print("\n📷 Material detectado - Iniciando captura de placa...")
+                capture_thread = threading.Thread(
+                    target=capture_and_detect_plate,
+                    args=(webcam_instance, mqtt_client),
+                    daemon=True
+                )
+                capture_thread.start()
 
         else:
             print(f"⚠️  Clave serial desconocida: '{key}'")
@@ -456,11 +674,19 @@ def on_disconnect(client, userdata, rc):
 # Variables globales accesibles desde los callbacks
 serial_comm: SerialCommunicator = None
 mqtt_client: mqtt.Client        = None
+webcam_instance: WebcamCapture  = None
 
 
 def main():
-    global serial_comm, mqtt_client
+    global serial_comm, mqtt_client, webcam_instance
 
+    # ── 0. Iniciar webcam (opcional) ─────────────────────
+    print("\n📷 Inicializando webcam...")
+    webcam_instance = WebcamCapture(WEBCAM_DEVICE_ID)
+    if not webcam_instance.connect():
+        print("⚠️  Advertencia: Webcam no disponible. Continuando sin captura de placas.")
+        webcam_instance = None
+    
     # ── 1. Iniciar comunicación serial ───────────────────────
     serial_comm = SerialCommunicator(ARDUINO_PORT, BAUD_RATE, TIMEOUT)
     if not serial_comm.connect():
@@ -512,6 +738,8 @@ def main():
         mqtt_client.loop_stop()
         mqtt_client.disconnect()
         serial_comm.disconnect()
+        if webcam_instance:
+            webcam_instance.disconnect()
         print("👋 EcoSort finalizado")
 
 
