@@ -83,3 +83,64 @@ export type AccesoComando = { comando: 'abrir' | 'cerrar'; elemento: 'puerta_pri
 export type IluminacionComando = { comando: 'encender' | 'apagar' };
 export type EmergenciaComando = { comando: 'activar' | 'desactivar'; motivo?: string };
 export type AlmacenComando = { comando: 'reset' | 'set_max'; linea?: 'plastico' | 'vidrio' | 'metal'; max_unidades?: number };
+
+
+// ──────────────────────────────────────────────
+// Tipos Fase 3: EPP, placas y notificaciones
+// ──────────────────────────────────────────────
+
+export interface EppVerification {
+  _id?: string;
+  id?: string;
+  access_granted: boolean;
+  missing_mandatory: string[];
+  detections: Record<string, number>;
+  source: string;
+  createdAt: string;
+}
+
+export type PlateValidationStatus =
+  | 'autorizada'
+  | 'no_autorizada'
+  | 'no_detectada';
+
+export interface PlateDetection {
+  _id?: string;
+  plate: string | null;
+  status: PlateValidationStatus;
+  confidence?: number | null;
+  source?: string;
+  timestamp: string;
+  createdAt?: string;
+}
+
+export interface AuthorizedPlate {
+  _id?: string;
+  plate: string;
+  owner?: string;
+  description?: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateAuthorizedPlatePayload {
+  plate: string;
+  owner?: string;
+  description?: string;
+}
+
+export interface UpdateAuthorizedPlatePayload {
+  plate?: string;
+  owner?: string;
+  description?: string;
+  active?: boolean;
+}
+
+export interface RealtimeNotification {
+  id: string;
+  type: 'info' | 'success' | 'warning' | 'danger';
+  title: string;
+  message: string;
+  createdAt: string;
+}
