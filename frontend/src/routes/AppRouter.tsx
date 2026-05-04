@@ -14,6 +14,7 @@ import Historical from '../pages/Historical';
 import Home from '../pages/Home';
 import Monitoring from '../pages/Monitoring';
 import Profile from '../pages/Profile';
+import PlatesAdmin from '../pages/PlatesAdmin';
 
 export const RouterApp = createBrowserRouter([
   // Layout principal (autenticado)
@@ -29,6 +30,7 @@ export const RouterApp = createBrowserRouter([
       { path: 'monitoring', element: <PrivateRoute><Monitoring /></PrivateRoute> },
       { path: 'profile', element: <PrivateRoute><Profile /></PrivateRoute> },
       { path: 'unauthorized', element: <Unauthorized /> },
+      { path: 'plates', element: <PrivateRoute><PlatesAdmin /></PrivateRoute> },
     ],
   },
 
