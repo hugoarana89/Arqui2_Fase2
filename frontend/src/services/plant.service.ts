@@ -1,7 +1,12 @@
 import type {
   PlantState, SensorEvent, ClassificationResult,
   CommandLog, ClassificationStats, LineaComando,
-  AccesoComando, IluminacionComando, EmergenciaComando, AlmacenComando
+  AccesoComando, IluminacionComando, EmergenciaComando, AlmacenComando,
+  EppVerification,
+  PlateDetection,
+  AuthorizedPlate,
+  CreateAuthorizedPlatePayload,
+  UpdateAuthorizedPlatePayload
 } from '../types/plant.types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000/api';
@@ -75,4 +80,63 @@ export const monitoringService = {
   getCommands: (limit = 100) =>
     fetch(`${BASE_URL}/monitoring/commands?limit=${limit}`, { headers: authHeaders() })
       .then(handleResponse<{ status: string; count: number; data: CommandLog[] }>),
+};
+
+
+// ── Fase 3: EPP ───────────────────────────────
+export const eppService = {
+  getVerifications: (limit = 20) =>
+    fetch(`${BASE_URL}/epp/verifications?limit=${limit}`, {
+      headers: authHeaders(),
+    }).then(handleResponse<{ status: string; count: number; data: EppVerification[] }>),
+
+  health: () =>
+    fetch(`${BASE_URL}/epp/health`, {
+      headers: authHeaders(),
+    }).then(handleResponse<{ status: string; data: unknown }>),
+};
+
+// ── Fase 3: Placas ────────────────────────────
+export const platesService = {
+  getAuthorized: () =>
+    fetch(`${BASE_URL}/plates/authorized`, {
+      headers: authHeaders(),
+    }).then(handleResponse<AuthorizedPlate[]>),
+
+  createAuthorized: (payload: CreateAuthorizedPlatePayload) =>
+    fetch(`${BASE_URL}/plates/authorized`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    }).then(handleResponse<AuthorizedPlate>),
+
+  updateAuthorized: (id: string, payload: UpdateAuthorizedPlatePayload) =>
+    fetch(`${BASE_URL}/plates/authorized/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(payload),
+    }).then(handleResponse<AuthorizedPlate>),
+
+  deleteAuthorized: (id: string) =>
+    fetch(`${BASE_URL}/plates/authorized/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    }).then(handleResponse<{ message: string }>),
+
+  validate: (plate: string, confidence = 0.95) =>
+    fetch(`${BASE_URL}/plates/validate`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ plate, confidence }),
+    }).then(handleResponse<{
+      authorized: boolean;
+      plate: string | null;
+      status: string;
+      detection: PlateDetection;
+    }>),
+
+  getDetections: () =>
+    fetch(`${BASE_URL}/plates/detections`, {
+      headers: authHeaders(),
+    }).then(handleResponse<PlateDetection[]>),
 };
