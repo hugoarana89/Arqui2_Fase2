@@ -13,6 +13,7 @@ import {
   X,
   Zap,
   Loader2,
+  Car,
 } from "lucide-react";
 
 const NavBar = () => {
@@ -71,6 +72,11 @@ const NavBar = () => {
       to: "/control-panel",
       icon: <LayoutDashboard size={22} />,
       label: "Panel de Control",
+    },
+    {
+      to: "/plates",
+      icon: <Car size={22} />,
+      label: "Placas",
     },
     { to: "/graphs", icon: <BarChart3 size={22} />, label: "Grafana" },
     { to: "/historical", icon: <History size={22} />, label: "Historial" },
