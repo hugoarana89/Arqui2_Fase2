@@ -383,5 +383,3 @@ MQTT_HOST = "34.9.126.151"
         setup_env.py
 ```
 ---
-**Curso:** Arquitectura de Computadoras y Ensambladores 2 <br />
-**Universidad San Carlos de Guatemala - Facultad de Ingeniería**
