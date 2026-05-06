@@ -1,7 +1,7 @@
 {
-  "linea": "plastico",
-  "fecha_entrenamiento": "2026-05-06T09:29:35.080023",
-  "n_muestras": 1820,
+  "linea": "metal",
+  "fecha_entrenamiento": "2026-05-06T09:29:50.177628",
+  "n_muestras": 171,
   "features": [
     "porcentaje_actual",
     "capacidad_restante",
@@ -18,8 +18,8 @@
     "tiempo_desde_inicio"
   ],
   "metricas": {
-    "mae": 0.41061603743039,
-    "rmse": 2.208291196067072,
-    "r2": 0.9764951794337657
+    "mae": 1.0836150793087418,
+    "rmse": 2.6875631397295296,
+    "r2": 0.9696408215839335
   }
 }

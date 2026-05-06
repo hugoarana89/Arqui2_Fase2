@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Servicio de predicción en tiempo real V3 - 5 segundos de intervalo
-Optimizado para máxima velocidad y precisión
+Servicio de predicción para 3 bodegas: plástico, vidrio, metal
+Predicciones cada 5 segundos
 """
 
 import pymongo
@@ -21,17 +21,15 @@ load_dotenv()
 
 class BodegaPredictor:
     def __init__(self):
-        self.linea = os.getenv('BODEGA_LINEA', 'plastico')
-        self.interval = int(os.getenv('PREDICTION_INTERVAL_SECONDS', 5))  # 5 segundos
-        self.model = None
-        self.features_expected = None
+        self.lineas = ['plastico', 'vidrio', 'metal']
+        self.models = {}
+        self.interval = 5
         self.running = True
-        self.last_prediction = None
         
-        print(f"🚀 Inicializando predictor V3 para bodega: {self.linea}")
-        print(f"⏱️  Intervalo de predicción: {self.interval} segundos")
+        print(f"🚀 Inicializando predictor para {len(self.lineas)} bodegas")
+        print(f"⏱️  Intervalo: {self.interval} segundos")
         
-        self.load_model()
+        self.load_models()
         self.connect_mongodb()
         self.connect_mqtt()
         
@@ -41,254 +39,147 @@ class BodegaPredictor:
         print("\n⛔ Deteniendo servicio...")
         self.running = False
     
-    def load_model(self):
-        """Cargar mejor modelo disponible (V3 > V2 > V1)"""
-        model_paths = [
-            f'models/bodega_{self.linea}_model_v3.pkl',
-            f'models/bodega_{self.linea}_model_v2.pkl', 
-            f'models/bodega_{self.linea}_model.pkl'
-        ]
-        
-        for model_path in model_paths:
+    def load_models(self):
+        for linea in self.lineas:
+            model_path = f'models/bodega_{linea}_model.pkl'
             if os.path.exists(model_path):
-                self.model = joblib.load(model_path)
-                print(f"✅ Modelo cargado: {model_path}")
-                
-                if hasattr(self.model, 'feature_names_in_'):
-                    self.features_expected = list(self.model.feature_names_in_)
-                else:
-                    self.features_expected = [
-                        'porcentaje_actual', 'capacidad_restante', 'throughput_15s',
-                        'throughput_30s', 'throughput_60s', 'throughput_120s',
-                        'velocidad_llenado', 'aceleracion', 'tasa_aprobacion_60s',
-                        'tasa_aprobacion_120s', 'hora', 'minuto', 'tiempo_desde_inicio'
-                    ]
-                
-                print(f"📋 Features: {len(self.features_expected)} variables")
-                
-                # Cargar metadata
-                meta_path = model_path.replace('.pkl', '_metadata.json')
+                self.models[linea] = joblib.load(model_path)
+                print(f"✅ Modelo cargado para {linea.upper()}")
+                # Cargar métricas
+                meta_path = f'models/bodega_{linea}_metadata.json'
                 if os.path.exists(meta_path):
-                    with open(meta_path, 'r') as f:
-                        self.metadata = json.load(f)
-                    print(f"📊 Precisión: MAE={self.metadata['metricas']['mae_test']:.2f} min")
-                return
-        
-        print(f"❌ No se encontró ningún modelo entrenado")
-        print("   Ejecuta: python train_model_v3.py")
-        sys.exit(1)
+                    with open(meta_path) as f:
+                        meta = json.load(f)
+                        print(f"   📊 MAE: {meta['metricas']['mae']:.2f} min | R²: {meta['metricas']['r2']:.3f}")
+            else:
+                print(f"⚠️  Modelo no encontrado para {linea.upper()}")
+                self.models[linea] = None
     
     def connect_mongodb(self):
         uri = os.getenv('MONGO_URI')
-        if not uri:
-            print("❌ MONGO_URI no encontrado")
-            sys.exit(1)
-        
         self.mongo_client = pymongo.MongoClient(uri)
         db_name = os.getenv('DB_NAME', 'ecosort_db')
         self.db = self.mongo_client[db_name]
         self.classification_col = self.db['classification_results']
-        
-        count = self.classification_col.count_documents({})
-        print(f"✅ Conectado a MongoDB: {db_name} ({count} documentos)")
+        print(f"✅ Conectado a MongoDB")
     
     def connect_mqtt(self):
-        host = os.getenv('MQTT_BROKER_URL', '34.9.126.151')
+        host = os.getenv('MQTT_BROKER_URL', '172.17.0.1')
         port = int(os.getenv('MQTT_BROKER_PORT', 1883))
-        
         self.mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
         self.mqtt_client.connect(host, port, 60)
         self.mqtt_client.loop_start()
         print(f"✅ Conectado a MQTT: {host}:{port}")
     
-    def get_current_state(self):
-        """Obtener estado actual con todas las features necesarias"""
+    def get_current_state(self, linea):
         try:
-            # Obtener últimos eventos
-            recent_events = list(self.classification_col.find(
-                {'linea': self.linea},
-                sort=[('timestamp', -1)]
-            ).limit(30))
-            
-            if len(recent_events) < 3:
+            last_event = self.classification_col.find_one(
+                {'linea': linea}, sort=[('timestamp', -1)]
+            )
+            if not last_event:
                 return None
             
-            recent_events.reverse()
-            df_events = pd.DataFrame(recent_events)
+            porcentaje = last_event.get('porcentaje_almacen_tras_evento', 0)
+            if porcentaje is None:
+                return None
             
-            last_event = recent_events[-1]
-            porcentaje_actual = last_event.get('porcentaje_almacen_tras_evento', 0)
+            ahora = datetime.now()
+            events_2min = list(self.classification_col.find({
+                'linea': linea,
+                'timestamp': {'$gte': ahora - timedelta(minutes=2)}
+            }))
             
-            if porcentaje_actual >= 99.5:
-                return {'estado': 'LLENA', 'porcentaje': porcentaje_actual}
+            throughput = len(events_2min)
             
-            now = datetime.now()
+            if throughput == 0:
+                return {'estado': 'SIN_FLUJO', 'porcentaje': porcentaje}
+            if porcentaje >= 99.5:
+                return {'estado': 'LLENA', 'porcentaje': porcentaje}
             
-            # Calcular todas las features
-            features = {}
+            # Calcular velocidad
+            two_events = list(self.classification_col.find(
+                {'linea': linea}, sort=[('timestamp', -1)]
+            ).limit(2))
             
-            # Porcentajes
-            features['porcentaje_actual'] = float(porcentaje_actual)
-            features['capacidad_restante'] = 100 - features['porcentaje_actual']
-            
-            # Throughput en múltiples ventanas
-            for window in [15, 30, 60, 120]:
-                cutoff = now - timedelta(seconds=window)
-                eventos_ventana = [e for e in recent_events if e['timestamp'] >= cutoff]
-                features[f'throughput_{window}s'] = float(len(eventos_ventana))
-            
-            # Velocidad y aceleración
-            if len(df_events) >= 2:
-                delta_p = df_events.iloc[-1]['porcentaje_almacen_tras_evento'] - df_events.iloc[-2]['porcentaje_almacen_tras_evento']
-                delta_t = (df_events.iloc[-1]['timestamp'] - df_events.iloc[-2]['timestamp']).total_seconds() / 60
-                features['velocidad_llenado'] = max(0, delta_p / delta_t) if delta_t > 0 else 0
-            else:
-                features['velocidad_llenado'] = 0
-            
-            if len(df_events) >= 3:
-                vel1 = features['velocidad_llenado']
-                delta_p2 = df_events.iloc[-2]['porcentaje_almacen_tras_evento'] - df_events.iloc[-3]['porcentaje_almacen_tras_evento']
-                delta_t2 = (df_events.iloc[-2]['timestamp'] - df_events.iloc[-3]['timestamp']).total_seconds() / 60
-                vel2 = max(0, delta_p2 / delta_t2) if delta_t2 > 0 else 0
-                features['aceleracion'] = vel1 - vel2
-            else:
-                features['aceleracion'] = 0
-            
-            # Tasa de aprobación
-            for window in [60, 120]:
-                cutoff = now - timedelta(seconds=window)
-                eventos_ventana = [e for e in recent_events if e['timestamp'] >= cutoff]
-                if eventos_ventana:
-                    aprobados = sum(1 for e in eventos_ventana if e.get('resultado') == 'aprobado')
-                    features[f'tasa_aprobacion_{window}s'] = aprobados / len(eventos_ventana)
-                else:
-                    features[f'tasa_aprobacion_{window}s'] = 0.5
-            
-            # Tiempo
-            features['hora'] = float(now.hour)
-            features['minuto'] = float(now.minute)
-            
-            primer_evento = self.classification_col.find_one(
-                {'linea': self.linea}, sort=[('timestamp', 1)]
-            )
-            if primer_evento:
-                features['tiempo_desde_inicio'] = (now - primer_evento['timestamp']).total_seconds() / 60
-            else:
-                features['tiempo_desde_inicio'] = 0
-            
-            # Verificar flujo
-            if features['throughput_120s'] == 0:
-                return {'estado': 'SIN_FLUJO', 'porcentaje': porcentaje_actual, 'features': features}
+            velocidad = 0
+            if len(two_events) >= 2:
+                delta_p = two_events[0]['porcentaje_almacen_tras_evento'] - two_events[1]['porcentaje_almacen_tras_evento']
+                delta_t = (two_events[0]['timestamp'] - two_events[1]['timestamp']).total_seconds() / 60
+                velocidad = max(0, delta_p / delta_t) if delta_t > 0 else 0
             
             return {
                 'estado': 'OPERANDO',
-                'porcentaje': porcentaje_actual,
-                'features': features,
-                'velocidad': features['velocidad_llenado']
+                'porcentaje': porcentaje,
+                'velocidad': velocidad,
+                'throughput': throughput
             }
-            
         except Exception as e:
-            print(f"❌ Error: {e}")
             return None
     
-    def predict(self):
-        """Generar predicción"""
-        if not self.model:
-            return None
-        
-        state = self.get_current_state()
-        if not state:
+    def predict(self, linea, state):
+        if not self.models.get(linea):
             return None
         
         if state['estado'] == 'LLENA':
-            return {
-                'minutos_restantes': 0,
-                'estado': 'LLENA',
-                'color_semaforo': 'ROJO',
-                'porcentaje': state['porcentaje']
-            }
-        
+            return {'minutos_restantes': 0, 'estado': 'LLENA', 'color': 'ROJO', 'porcentaje': state['porcentaje']}
         if state['estado'] == 'SIN_FLUJO':
-            return {
-                'minutos_restantes': None,
-                'estado': 'SIN_FLUJO',
-                'color_semaforo': 'APAGADO',
-                'porcentaje': state['porcentaje']
-            }
+            return {'minutos_restantes': None, 'estado': 'SIN_FLUJO', 'color': 'APAGADO', 'porcentaje': state['porcentaje']}
         
         try:
-            features_df = pd.DataFrame([state['features']])
-            
-            if self.features_expected:
-                available = [f for f in self.features_expected if f in features_df.columns]
-                features_df = features_df[available]
-            
-            minutos = self.model.predict(features_df)[0]
-            minutos = max(0, min(float(minutos), 60))
-            
-            if minutos > 15:
-                color = 'VERDE'
-            elif minutos > 5:
-                color = 'AMARILLO'
+            if state['velocidad'] > 0:
+                minutos = (100 - state['porcentaje']) / state['velocidad']
+                minutos = max(0, min(minutos, 60))
             else:
-                color = 'ROJO'
+                minutos = 30
+            
+            color = 'VERDE' if minutos > 15 else 'AMARILLO' if minutos > 5 else 'ROJO'
             
             return {
                 'minutos_restantes': round(minutos, 1),
                 'estado': 'OPERANDO',
-                'color_semaforo': color,
-                'porcentaje': state['porcentaje'],
-                'velocidad': state.get('velocidad', 0)
+                'color': color,
+                'porcentaje': state['porcentaje']
             }
-            
-        except Exception as e:
-            print(f"❌ Error predicción: {e}")
+        except:
             return None
     
-    def publish(self, prediction):
+    def publish(self, linea, prediction, state):
         if not prediction:
             return
         
-        topic = f"ecosort/predicciones/bodega/{self.linea}"
         payload = {
-            'linea': self.linea,
+            'linea': linea,
             'porcentaje_actual': round(prediction['porcentaje'], 1),
             'minutos_restantes': prediction.get('minutos_restantes'),
             'estado': prediction['estado'],
-            'color_semaforo': prediction['color_semaforo'],
+            'color_semaforo': prediction['color'],
+            'velocidad_llenado': state.get('velocidad', 0),
             'timestamp': datetime.now().isoformat()
         }
         
-        if 'velocidad' in prediction:
-            payload['velocidad_llenado'] = round(prediction['velocidad'], 2)
+        self.mqtt_client.publish(f"ecosort/predicciones/bodega/{linea}", json.dumps(payload), qos=1)
         
-        self.mqtt_client.publish(topic, json.dumps(payload), qos=1)
-        
-        # Mostrar en consola (más compacto para 5 segundos)
-        now = datetime.now().strftime('%H:%M:%S')
+        emoji = {'VERDE': '🟢', 'AMARILLO': '🟡', 'ROJO': '🔴', 'APAGADO': '⚫'}.get(prediction['color'], '⚪')
         if prediction['estado'] == 'OPERANDO':
-            print(f"📊 [{now}] {prediction['porcentaje']:.0f}% | {prediction['minutos_restantes']}min | {prediction['color_semaforo']}")
+            print(f"{emoji} [{datetime.now().strftime('%H:%M:%S')}] {linea.upper()}: {prediction['porcentaje']:.0f}% → {prediction['minutos_restantes']} min")
         else:
-            print(f"📊 [{now}] {prediction['porcentaje']:.0f}% | {prediction['estado']}")
+            print(f"{emoji} [{datetime.now().strftime('%H:%M:%S')}] {linea.upper()}: {prediction['porcentaje']:.0f}% → {prediction['estado']}")
     
     def run(self):
         print("\n" + "="*50)
         print(f"🚀 PREDICCIÓN EN TIEMPO REAL (c/{self.interval}s)")
-        print(f"📍 Bodega: {self.linea.upper()}")
+        print("📍 Bodegas: PLASTICO, VIDRIO, METAL")
         print("="*50 + "\n")
         
         while self.running:
             start = time.time()
-            
-            prediction = self.predict()
-            if prediction:
-                self.publish(prediction)
-            else:
-                print("⚠️  Esperando datos...")
-            
-            elapsed = time.time() - start
-            sleep_time = max(0, self.interval - elapsed)
-            time.sleep(sleep_time)
+            for linea in self.lineas:
+                state = self.get_current_state(linea)
+                if state:
+                    pred = self.predict(linea, state)
+                    if pred:
+                        self.publish(linea, pred, state)
+            time.sleep(max(0, self.interval - (time.time() - start)))
     
     def cleanup(self):
         if hasattr(self, 'mqtt_client'):
