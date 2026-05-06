@@ -15,7 +15,8 @@
 9. Visualización en la aplicación web
 10. Grafana extendido
 11. Despliegue y operación
-12. Conclusión
+12. Estado del repositorio y observaciones técnicas
+13. Conclusión
 
 ---
 
@@ -374,7 +375,13 @@ La serie debe separar:
 - La Raspberry Pi debe poder operar de forma autónoma para LCD y LEDs una vez recibida la predicción.
 - El backend debe conservar trazabilidad de cada intento y evento importante.
 
-## 12. Conclusión
+## 12. Estado del repositorio y observaciones técnicas
+
+A partir de la revisión del código, la integración de EPP, placas, monitoreo, MQTT, Socket.io y Grafana sí está alineada con la arquitectura descrita en este manual.
+
+También se identificó que la carpeta base del servicio de predicción existe, pero su punto de entrada aún está vacío. Para completar la Fase 3 de forma consistente con el enunciado, ese servicio debe implementarse y conectarse al flujo descrito en la sección de predicción de bodegas.
+
+## 13. Conclusión
 
 EcoSort Fase 3 transforma la planta recicladora automatizada en una plataforma IoT inteligente que combina automatización física, visión computacional, machine learning y visualización analítica. La arquitectura conserva la base funcional de la Fase 2 y la extiende con servicios de IA que toman decisiones sobre el acceso peatonal y vehicular, el estado de las bodegas y la notificación de eventos críticos.
 
