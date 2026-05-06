@@ -11,6 +11,7 @@ import { initMqttClient } from './config/mqtt.js';
 import { initSocketServer } from './config/socket.js';
 import { registerMqttSubscriptions } from './mqtt/mqttSubscriber.js';
 
+import predictionsRoutes from './routes/predictions.routes.js';
 import authRoutes       from './routes/auth.routes.js';
 import controlRoutes    from './routes/control.routes.js';
 import monitoringRoutes from './routes/monitoring.routes.js';
@@ -38,6 +39,7 @@ app.use('/api/control',    controlRoutes);
 app.use('/api/monitoring', monitoringRoutes);
 app.use('/api/grafana',    grafanaRoutes);
 app.use('/api/epp',        eppRoutes);
+app.use('/api/predictions', predictionsRoutes);
 
 app.get('/', (_req, res) => {
   res.json({ status: 'ok', message: 'EcoSort API operativa 🚀' });
