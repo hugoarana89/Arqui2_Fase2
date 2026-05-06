@@ -4,7 +4,6 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
-// Proteger todas las rutas con autenticación
 router.use(authenticate);
 
 router.get('/latest/:linea', (req, res, next) => 

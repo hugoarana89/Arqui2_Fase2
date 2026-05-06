@@ -1,26 +1,27 @@
 import { useEffect, useState } from 'react';
 import io from 'socket.io-client';
 
+interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: 'danger' | 'warning' | 'info';
+}
+
 export const useSocket = () => {
   const [plantState, setPlantState] = useState<any>({});
   const [socketStatus, setSocketStatus] = useState('connecting');
-  const [latestEpp, setLatestEpp] = useState(null);
-  const [latestPlate, setLatestPlate] = useState(null);
-  const [notifications, setNotifications] = useState([]);
+  const [latestEpp, setLatestEpp] = useState<any>(null);
+  const [latestPlate, setLatestPlate] = useState<any>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
     const WS_URL = import.meta.env.VITE_WS_URL || 'ws://172.17.0.1:4000';
     const token = localStorage.getItem('token');
     
-    if (!token) {
-      console.log('⚠️ No hay token para WebSocket');
-      setSocketStatus('disconnected');
-      return;
-    }
-    
     const socket = io(WS_URL, {
       auth: { token },
-      transports: ['websocket']
+      transports: ['websocket', 'polling']
     });
 
     socket.on('connect', () => {
@@ -48,7 +49,7 @@ export const useSocket = () => {
       setLatestPlate(data);
     });
 
-    socket.on('notification', (notif) => {
+    socket.on('notification', (notif: Notification) => {
       setNotifications(prev => [notif, ...prev].slice(0, 20));
     });
 

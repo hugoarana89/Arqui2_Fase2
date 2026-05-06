@@ -1,7 +1,7 @@
 {
-  "linea": "plastico",
-  "fecha_entrenamiento": "2026-05-06T09:29:35.080023",
-  "n_muestras": 1820,
+  "linea": "vidrio",
+  "fecha_entrenamiento": "2026-05-06T09:29:42.488491",
+  "n_muestras": 172,
   "features": [
     "porcentaje_actual",
     "capacidad_restante",
@@ -18,8 +18,8 @@
     "tiempo_desde_inicio"
   ],
   "metricas": {
-    "mae": 0.41061603743039,
-    "rmse": 2.208291196067072,
-    "r2": 0.9764951794337657
+    "mae": 1.7940017278292129,
+    "rmse": 4.628982891318726,
+    "r2": 0.9391995434816112
   }
 }
