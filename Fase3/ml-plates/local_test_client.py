@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 
-"""Cliente local para probar el servicio ml-plates con las imágenes de test_images/.
+"""Cliente local para probar placas usando las imágenes de test_images/.
 
-Lee HOST y PORT desde el archivo .env del directorio del modelo.
+Por defecto envía las imágenes al backend desplegado en la nube.
+También permite probar directamente el modelo ml-plates con --model.
 
-Uso:
+Lee HOST, PORT, BACKEND_HOST y BACKEND_PORT desde el archivo .env.
+
+Uso (backend - recomendado):
     python local_test_client.py
-    python local_test_client.py --image test_images/placa1.jpg
     python local_test_client.py --dir test_images
-    python local_test_client.py --host 127.0.0.1 --port 8000
+    python local_test_client.py --image test_images/placa1.jpg
+
+Uso (modelo directo - debug):
+    python local_test_client.py --model
+    python local_test_client.py --model --dir test_images
+    python local_test_client.py --model --host 34.27.190.151 --port 8000
 """
 
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import sys
@@ -25,7 +33,9 @@ from pathlib import Path
 
 MODEL_DIR = Path(__file__).resolve().parent
 ENV_FILE = MODEL_DIR / ".env"
-DEFAULT_PATH = "/detect-plate"
+BACKEND_PATH = "/api/plates/detect"
+VALIDATE_PATH = "/api/plates/validate"
+MODEL_PATH = "/detect-plate"
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
@@ -50,22 +60,34 @@ def resolve_url(args: argparse.Namespace) -> str:
         return args.url
 
     load_env_file(ENV_FILE)
-    host = args.host or os.getenv("HOST", "127.0.0.1")
-    port = args.port or os.getenv("PORT", "8000")
-    return f"http://{host}:{port}{DEFAULT_PATH}"
+    if args.model:
+        host = args.host or os.getenv("HOST", "127.0.0.1")
+        port = args.port or os.getenv("PORT", "8000")
+        path = MODEL_PATH
+    else:
+        host = args.host or os.getenv("BACKEND_HOST", "34.9.126.151")
+        port = args.port or os.getenv("BACKEND_PORT", "4000")
+        path = BACKEND_PATH
+
+    return f"http://{host}:{port}{path}"
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Prueba local del modelo de placas")
+    parser = argparse.ArgumentParser(description="Prueba de detección de placas con imágenes de test_images")
+    parser.add_argument(
+        "--model",
+        action="store_true",
+        help="Probar contra el modelo ml-plates directo en lugar del backend (debug)",
+    )
     parser.add_argument(
         "--image",
         default=None,
-        help="Ruta de una imagen individual a enviar",
+        help="Ruta de una imagen individual a enviar. Si no se pasa, se usa el directorio test_images.",
     )
     parser.add_argument(
         "--dir",
         default=str(MODEL_DIR / "test_images"),
-        help="Directorio con imágenes de prueba a procesar",
+        help="Directorio con imágenes de prueba a procesar (por defecto: test_images)",
     )
     parser.add_argument(
         "--url",
@@ -75,12 +97,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--host",
         default=None,
-        help="Host de la API. Si no se pasa, se lee desde .env",
+        help="Host de la API. Por defecto: backend (34.9.126.151) o modelo local si --model",
     )
     parser.add_argument(
         "--port",
         default=None,
-        help="Puerto de la API. Si no se pasa, se lee desde .env",
+        help="Puerto de la API. Por defecto: backend (4000) o modelo (8000) si --model",
     )
     parser.add_argument(
         "--timeout",
@@ -106,7 +128,7 @@ def build_multipart_form(field_name: str, filename: str, file_bytes: bytes) -> t
     return b"".join(parts), boundary
 
 
-def post_image(url: str, filename: str, file_bytes: bytes, timeout: float) -> tuple[int, str]:
+def post_image_model(url: str, filename: str, file_bytes: bytes, timeout: float) -> tuple[int, str]:
     body, boundary = build_multipart_form("file", filename, file_bytes)
     request = urllib.request.Request(
         url,
@@ -120,6 +142,54 @@ def post_image(url: str, filename: str, file_bytes: bytes, timeout: float) -> tu
             return response.status, response.read().decode("utf-8")
     except urllib.error.HTTPError as error:
         return error.code, error.read().decode("utf-8", errors="replace")
+
+
+def post_image_backend(url: str, file_bytes: bytes, timeout: float) -> tuple[int, str]:
+    image_base64 = base64.b64encode(file_bytes).decode("utf-8")
+    payload = json.dumps({
+        "imageBase64": image_base64,
+        "source": "local_test_client",
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.status, response.read().decode("utf-8")
+    except urllib.error.HTTPError as error:
+        return error.code, error.read().decode("utf-8", errors="replace")
+
+
+def post_validate_backend(url: str, plate: str | None, confidence: float | None, timeout: float) -> tuple[int, str]:
+    payload = json.dumps({
+        "plate": plate,
+        "confidence": confidence,
+        "source": "local_test_client",
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        url,
+        data=payload,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return response.status, response.read().decode("utf-8")
+    except urllib.error.HTTPError as error:
+        return error.code, error.read().decode("utf-8", errors="replace")
+
+
+def post_image(url: str, filename: str, file_bytes: bytes, timeout: float, is_model: bool) -> tuple[int, str]:
+    if is_model:
+        return post_image_model(url, filename, file_bytes, timeout)
+    return post_image_backend(url, file_bytes, timeout)
 
 
 def collect_images(image_path: str | None, directory: str) -> list[Path]:
@@ -145,6 +215,7 @@ def collect_images(image_path: str | None, directory: str) -> list[Path]:
 def main() -> int:
     args = parse_args()
     url = resolve_url(args)
+    is_model = args.model
 
     try:
         images = collect_images(args.image, args.dir)
@@ -152,7 +223,8 @@ def main() -> int:
         print(str(exc))
         return 1
 
-    print(f"Endpoint: {url}")
+    mode = "modelo directo" if is_model else "backend desplegado"
+    print(f"Endpoint ({mode}): {url}")
     print(f"Imágenes a probar: {len(images)}")
 
     exit_code = 0
@@ -163,7 +235,7 @@ def main() -> int:
             continue
 
         file_bytes = image_path.read_bytes()
-        status_code, response_text = post_image(url, image_path.name, file_bytes, args.timeout)
+        status_code, response_text = post_image(url, image_path.name, file_bytes, args.timeout, is_model)
 
         print(f"\n[{image_path.name}] HTTP {status_code}")
 
@@ -179,7 +251,37 @@ def main() -> int:
             exit_code = 1
             continue
 
+        if isinstance(data, dict) and data.get("status") == "success" and isinstance(data.get("data"), dict):
+            data = data["data"]
+
         print(json.dumps(data, indent=2, ensure_ascii=False))
+
+        if not is_model:
+            plate = data.get("plate") if isinstance(data, dict) else None
+            confidence = data.get("confidence") if isinstance(data, dict) else None
+
+            validate_status, validate_text = post_validate_backend(
+                f"http://{os.getenv('BACKEND_HOST', '34.9.126.151')}:{os.getenv('BACKEND_PORT', '4000')}{VALIDATE_PATH}",
+                plate if isinstance(plate, str) or plate is None else None,
+                confidence if isinstance(confidence, (int, float)) or confidence is None else None,
+                args.timeout,
+            )
+
+            print(f"[{image_path.name}] VALIDATE HTTP {validate_status}")
+
+            if validate_status >= 400:
+                print(validate_text)
+                exit_code = 1
+                continue
+
+            try:
+                validate_data = json.loads(validate_text)
+            except json.JSONDecodeError:
+                print(validate_text)
+                exit_code = 1
+                continue
+
+            print(json.dumps(validate_data, indent=2, ensure_ascii=False))
 
     return exit_code
 
