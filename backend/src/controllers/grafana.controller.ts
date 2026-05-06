@@ -2,6 +2,7 @@ import type { Request, Response, NextFunction } from 'express';
 import ClassificationResultModel from '../models/classificationResult.model.js';
 import SensorEventModel from '../models/sensorEvent.model.js';
 import CommandLogModel from '../models/commandLog.model.js';
+import GrafanaEppPlatesModel from '../models/grafanaEppPlates.model.js';
 
 // ──────────────────────────────────────────────────────────────────────────────
 //  GrafanaController
@@ -34,7 +35,7 @@ function parseRange(body: Record<string, unknown>): { from: Date; to: Date } {
   // Query params: ?from=1234567890000&to=1234567890000 (epoch ms)
   if (body['from'] !== undefined) {
     const from = new Date(Number(body['from']));
-    const to   = new Date(Number(body['to'] ?? Date.now()));
+    const to = new Date(Number(body['to'] ?? Date.now()));
     return { from, to };
   }
   // Body: { range: { from: "ISO", to: "ISO" } }
@@ -310,6 +311,57 @@ class GrafanaController {
       ]);
     } catch (err) { next(err); }
   }
+
+  // ── POST /api/grafana/epp-verificaciones ─────────────────────────────────────
+  // Panel: "Evolución de verificaciones de EPP a lo largo del tiempo"
+  //
+  // Devuelve 3 series diferenciadas por resultado de la verificación:
+  //   · epp_exitosas  → access_granted === true  (verificaciones que pasaron todos los EPP)
+  //   · epp_fallidas  → access_granted === false (verificaciones con EPP faltante o incorrecto)
+  //   · epp_total     → suma de exitosas + fallidas (total de intentos realizados)
+  //
+  // Cada datapoint: [count, timestamp_ms]
+  async eppVerificaciones(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
+      const { from, to } = parseRange(body);
+      const intervalMs = parseIntervalMs(body);
+
+      const series = await GrafanaEppPlatesModel.getEppTimeSeries(from, to, intervalMs);
+
+      res.status(200).json([
+        { target: 'epp_exitosas', datapoints: series.epp_exitosas },
+        { target: 'epp_fallidas', datapoints: series.epp_fallidas },
+        { target: 'epp_total', datapoints: series.epp_total },
+      ]);
+    } catch (err) { next(err); }
+  }
+
+  // ── POST /api/grafana/reconocimiento-placas ─────────────────────────────────
+  // Panel: "Desempeño del reconocimiento de placas vehiculares a lo largo del tiempo"
+  //
+  // Devuelve 3 series diferenciadas por el campo `status` de PlateDetectionDocument:
+  //   · placas_autorizadas    → status === 'autorizada'    (detectada y en lista blanca)
+  //   · placas_no_autorizadas → status === 'no_autorizada' (detectada pero no en lista blanca)
+  //   · placas_no_detectadas  → status === 'no_detectada'  (no se pudo extraer el número)
+  //
+  // Cada datapoint: [count, timestamp_ms]
+  async reconocimientoPlacas(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const body = (req.body && Object.keys(req.body as object).length > 0 ? req.body : req.query) as Record<string, unknown>;
+      const { from, to } = parseRange(body);
+      const intervalMs = parseIntervalMs(body);
+
+      const series = await GrafanaEppPlatesModel.getPlatesTimeSeries(from, to, intervalMs);
+
+      res.status(200).json([
+        { target: 'placas_autorizadas', datapoints: series.placas_autorizadas },
+        { target: 'placas_no_autorizadas', datapoints: series.placas_no_autorizadas },
+        { target: 'placas_no_detectadas', datapoints: series.placas_no_detectadas },
+      ]);
+    } catch (err) { next(err); }
+  }
 }
+
 
 export default new GrafanaController();

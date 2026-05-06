@@ -1293,6 +1293,439 @@
       ],
       "title": "KPIs de Eventos Críticos",
       "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 56
+      },
+      "id": 30,
+      "panels": [],
+      "title": "Seguridad y Acceso",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "epp_exitosas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "epp_fallidas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "epp_total"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "blue",
+                  "mode": "fixed"
+                }
+              },
+              {
+                "id": "custom.lineWidth",
+                "value": 1
+              },
+              {
+                "id": "custom.lineStyle",
+                "value": {
+                  "dash": [
+                    10,
+                    5
+                  ],
+                  "fill": "dash"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 0,
+        "y": 57
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "epp_exitosas",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/epp-verificaciones?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "epp_fallidas",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/epp-verificaciones?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "epp_total",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/epp-verificaciones?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Evolución de Verificaciones de EPP",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "marcusolsson-json-datasource",
+        "uid": "efg9puqoh4tmoa"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "placas_autorizadas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "green",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "placas_no_autorizadas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "placas_no_detectadas"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 12,
+        "x": 12,
+        "y": 57
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "max"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.4.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[0].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[0].datapoints[*][0]",
+              "name": "placas_autorizadas",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "A",
+          "urlPath": "/api/grafana/reconocimiento-placas?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[1].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[1].datapoints[*][0]",
+              "name": "placas_no_autorizadas",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "B",
+          "urlPath": "/api/grafana/reconocimiento-placas?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-json-datasource",
+            "uid": "efg9puqoh4tmoa"
+          },
+          "fields": [
+            {
+              "jsonPath": "$[2].datapoints[*][1]",
+              "name": "Time",
+              "type": "time"
+            },
+            {
+              "jsonPath": "$[2].datapoints[*][0]",
+              "name": "placas_no_detectadas",
+              "type": "number"
+            }
+          ],
+          "method": "GET",
+          "queryType": "query",
+          "refId": "C",
+          "urlPath": "/api/grafana/reconocimiento-placas?from=${__from}&to=${__to}&intervalMs=${__interval_ms}"
+        }
+      ],
+      "title": "Desempeño del Reconocimiento de Placas Vehiculares",
+      "type": "timeseries"
     }
   ],
   "preload": false,
@@ -1314,6 +1747,6 @@
   "timezone": "browser",
   "title": "EcoSort - Dashboard de Monitoreo",
   "uid": "ecosort-dashboard-v2",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

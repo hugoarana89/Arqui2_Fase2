@@ -63,4 +63,12 @@ router.post('/kpis-eventos-criticos', requireApiKey, (req, res, next) => Grafana
 router.get('/actividad-sistema',      requireApiKey, (req, res, next) => GrafanaController.actividadSistema(req, res, next));
 router.post('/actividad-sistema',     requireApiKey, (req, res, next) => GrafanaController.actividadSistema(req, res, next));
 
+//Evolución de verificaciones de EPP
+router.get('/epp-verificaciones',      requireApiKey, (req, res, next) => GrafanaController.eppVerificaciones(req, res, next));
+router.post('/epp-verificaciones',     requireApiKey, (req, res, next) => GrafanaController.eppVerificaciones(req, res, next));
+
+//Desempeño del reconocimiento de placas vehiculares
+router.get('/reconocimiento-placas',   requireApiKey, (req, res, next) => GrafanaController.reconocimientoPlacas(req, res, next));
+router.post('/reconocimiento-placas',  requireApiKey, (req, res, next) => GrafanaController.reconocimientoPlacas(req, res, next));
+
 export default router;
