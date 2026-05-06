@@ -1,25 +1,9 @@
 {
   "linea": "vidrio",
-  "fecha_entrenamiento": "2026-05-06T09:29:42.488491",
-  "n_muestras": 172,
-  "features": [
-    "porcentaje_actual",
-    "capacidad_restante",
-    "throughput_15s",
-    "throughput_30s",
-    "throughput_60s",
-    "throughput_120s",
-    "velocidad_llenado",
-    "aceleracion",
-    "tasa_aprobacion_60s",
-    "tasa_aprobacion_120s",
-    "hora",
-    "minuto",
-    "tiempo_desde_inicio"
-  ],
+  "fecha_entrenamiento": "2026-05-06T11:13:01.367735",
+  "n_muestras": 287,
   "metricas": {
-    "mae": 1.7940017278292129,
-    "rmse": 4.628982891318726,
-    "r2": 0.9391995434816112
+    "mae_test": 0.6489733507773171,
+    "r2_test": 0.9848608148062161
   }
 }

@@ -16,20 +16,31 @@ for linea in ['plastico', 'vidrio', 'metal']:
         with open(meta_path) as f:
             meta = json.load(f)
         
-        m = meta['metricas']
         print(f"\n📍 BODEGA: {linea.upper()}")
-        print(f"   📅 Entrenado: {meta['fecha_entrenamiento'][:19]}")
-        print(f"   📊 Muestras: {meta['n_muestras']}")
-        print(f"   ✅ MAE:  {m['mae']:.2f} minutos")
-        print(f"   📈 RMSE: {m['rmse']:.2f} minutos")
-        print(f"   🎯 R²:   {m['r2']:.3f} ({m['r2']*100:.1f}% precisión)")
+        print(f"   📅 Entrenado: {meta.get('fecha_entrenamiento', 'N/A')[:19]}")
+        print(f"   📊 Muestras: {meta.get('n_muestras', 'N/A')}")
+        
+        # Soporta ambos formatos de métricas
+        m = meta.get('metricas', {})
+        
+        # Buscar MAE en diferentes posibles keys
+        mae = m.get('mae_test') or m.get('mae') or m.get('mae_train')
+        rmse = m.get('rmse_test') or m.get('rmse') or m.get('rmse_train')
+        r2 = m.get('r2_test') or m.get('r2') or m.get('r2_train')
+        
+        if mae:
+            print(f"   ✅ MAE:  {mae:.2f} minutos")
+        if rmse:
+            print(f"   📈 RMSE: {rmse:.2f} minutos")
+        if r2:
+            print(f"   🎯 R²:   {r2:.3f} ({r2*100:.1f}% precisión)")
         
         # Interpretación
-        if m['r2'] > 0.95:
+        if r2 and r2 > 0.95:
             print(f"   🌟 Excelente! Modelo muy preciso")
-        elif m['r2'] > 0.9:
+        elif r2 and r2 > 0.9:
             print(f"   👍 Muy bueno! Modelo confiable")
-        else:
+        elif r2:
             print(f"   📉 Aceptable, puede mejorar con más datos")
 
 print("\n" + "="*60)

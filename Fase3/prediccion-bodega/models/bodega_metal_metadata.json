@@ -1,25 +1,9 @@
 {
   "linea": "metal",
-  "fecha_entrenamiento": "2026-05-06T09:29:50.177628",
-  "n_muestras": 171,
-  "features": [
-    "porcentaje_actual",
-    "capacidad_restante",
-    "throughput_15s",
-    "throughput_30s",
-    "throughput_60s",
-    "throughput_120s",
-    "velocidad_llenado",
-    "aceleracion",
-    "tasa_aprobacion_60s",
-    "tasa_aprobacion_120s",
-    "hora",
-    "minuto",
-    "tiempo_desde_inicio"
-  ],
+  "fecha_entrenamiento": "2026-05-06T11:13:04.205290",
+  "n_muestras": 311,
   "metricas": {
-    "mae": 1.0836150793087418,
-    "rmse": 2.6875631397295296,
-    "r2": 0.9696408215839335
+    "mae_test": 1.3956314761027622,
+    "r2_test": 0.928205683037207
   }
 }
