@@ -4,6 +4,7 @@ import { handlePuertaEstado, handleAlarmaRfid } from './handlers/acceso.handler.
 import { handleBandaPrincipal, handleBandaPlastico, handleBandaVidrio, handleBandaMetal } from './handlers/bandas.handler.js';
 import { handleMaterialDetectado, handleMaterialResultado } from './handlers/clasificador.handler.js';
 import { handleAlarmaHumo } from './handlers/seguridad.handler.js';
+import { handlePrediccionBodega } from './handlers/prediccion.handler.js';
 
 // ──────────────────────────────────────────────
 //  Topics de recepción (Raspberry → backend)
@@ -21,6 +22,7 @@ const TOPICS = [
   'ecosort/clasificador/material/detectado',
   'ecosort/clasificador/material/resultado',
   'ecosort/seguridad/alarma/humo',
+  'ecosort/predicciones/bodega/+',  // ← NUEVO: predicciones de bodegas
 ] as const;
 
 type Topic = typeof TOPICS[number];
@@ -50,10 +52,18 @@ export const registerMqttSubscriptions = (client: MqttClient): void => {
 
     console.log(`📨 MQTT [${topic}]:`, payload);
 
+    // Verificar si es un topic de predicción (wildcard)
+    if (topic.startsWith('ecosort/predicciones/bodega/')) {
+      handlePrediccionBodega(payload as any).catch((err: Error) =>
+        console.error(`❌ Error en handler de predicción:`, err.message),
+      );
+      return;
+    }
+
     // Dispatch al handler correspondiente
     const handler = topicHandlers[topic as Topic];
     if (handler) {
-      handler(payload).catch((err: Error) =>
+      handler(payload as any).catch((err: Error) =>
         console.error(`❌ Error en handler de ${topic}:`, err.message),
       );
     } else {

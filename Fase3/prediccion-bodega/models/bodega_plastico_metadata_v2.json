@@ -1,0 +1,20 @@
+{
+  "linea": "plastico",
+  "version": 2,
+  "fecha_entrenamiento": "2026-05-06T00:40:13.861925",
+  "n_muestras": 103,
+  "features": [
+    "porcentaje_actual",
+    "capacidad_restante",
+    "throughput_30s",
+    "throughput_2min",
+    "velocidad_llenado",
+    "tasa_aprobacion",
+    "hora"
+  ],
+  "metricas": {
+    "mae_test": 4.0146838361890484,
+    "rmse_test": 7.621257177498491,
+    "r2_test": 0.8528073345922027
+  }
+}

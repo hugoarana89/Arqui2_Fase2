@@ -4,10 +4,14 @@ import {
   Car, DoorOpen, Flame,
   AlertTriangle, CheckCircle, XCircle,
   Zap, PackageOpen, Activity, Shield,
+  TrendingUp, Gauge
 } from 'lucide-react';
 import { useSocket } from '../hooks/useSocket';
+import { usePredictions } from '../hooks/usePredictions';
+import { BodegaPrediction } from '../components/BodegaPrediction';
 import { eppService, platesService } from '../services/plant.service';
 import type { EppVerification, PlateDetection } from '../types/plant.types';
+import axios from 'axios';
 
 // ── Helpers ───────────────────────────────────
 const fmt = (iso: string) =>
@@ -166,6 +170,79 @@ const BandaIndicator = ({
   </div>
 );
 
+// ── Tarjeta de Predicción (versión simplificada si no existe el componente) ──
+const PredictionCard = ({ linea, porcentaje, minutosRestantes, estado, colorSemaforo }: {
+  linea: string;
+  porcentaje: number;
+  minutosRestantes: number | null;
+  estado: string;
+  colorSemaforo: string;
+}) => {
+  const colorMap: Record<string, string> = {
+    VERDE: 'bg-green-500',
+    AMARILLO: 'bg-yellow-500',
+    ROJO: 'bg-red-500',
+    APAGADO: 'bg-gray-500'
+  };
+
+  const getEstadoTexto = () => {
+    switch (estado) {
+      case 'LLENA': return '🟢 BODEGA LLENA';
+      case 'SIN_FLUJO': return '⏸️ SIN FLUJO DE MATERIALES';
+      default: return `🔄 OPERANDO - ${minutosRestantes} min restantes`;
+    }
+  };
+
+  const getColorBarra = () => {
+    if (porcentaje >= 90) return 'bg-red-500';
+    if (porcentaje >= 70) return 'bg-yellow-500';
+    return 'bg-green-500';
+  };
+
+  return (
+    <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl border border-slate-700 p-4 shadow-lg">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-bold text-white capitalize flex items-center gap-2">
+          <TrendingUp size={18} className="text-blue-400" />
+          {linea}
+        </h3>
+        <div className="flex items-center gap-2">
+          <div className={`w-3 h-3 rounded-full ${colorMap[colorSemaforo] || 'bg-gray-500'} animate-pulse`} />
+          <span className="text-xs font-semibold text-slate-300">{colorSemaforo}</span>
+        </div>
+      </div>
+      
+      {/* Barra de porcentaje */}
+      <div className="mb-3">
+        <div className="flex justify-between text-xs mb-1">
+          <span className="text-slate-400">Almacenamiento</span>
+          <span className={`font-bold ${porcentaje >= 90 ? 'text-red-400' : 'text-white'}`}>
+            {porcentaje.toFixed(1)}%
+          </span>
+        </div>
+        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-500 ${getColorBarra()}`}
+            style={{ width: `${porcentaje}%` }}
+          />
+        </div>
+      </div>
+      
+      {/* Estado */}
+      <div className="flex items-center gap-2 text-sm">
+        <Gauge size={14} className="text-slate-400" />
+        <span className="text-slate-300">{getEstadoTexto()}</span>
+      </div>
+      
+      {/* Timestamp */}
+      <div className="text-xs text-slate-500 mt-2 flex items-center gap-1">
+        <Clock size={10} />
+        Actualizado: {new Date().toLocaleTimeString()}
+      </div>
+    </div>
+  );
+};
+
 // ── Componente principal ──────────────────────
 const Monitoring = () => {
   const {
@@ -178,9 +255,11 @@ const Monitoring = () => {
     clearNotifications,
   } = useSocket();
 
+  const { predictions, getPredictionForLinea } = usePredictions();
   const [now, setNow] = useState(new Date());
   const [initialEpp, setInitialEpp] = useState<EppVerification | null>(null);
   const [initialPlate, setInitialPlate] = useState<PlateDetection | null>(null);
+  const [historicoPredictions, setHistoricoPredictions] = useState<any[]>([]);
 
   const epp = latestEpp ?? initialEpp;
   const plate = latestPlate ?? initialPlate;
@@ -200,6 +279,22 @@ const Monitoring = () => {
       .getDetections()
       .then((res) => setInitialPlate(res[0] ?? null))
       .catch(() => setInitialPlate(null));
+  }, []);
+
+  // Cargar historial de predicciones
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/predictions/history/plastico?limit=5', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setHistoricoPredictions(response.data.data || []);
+      } catch (error) {
+        console.error('Error cargando historial:', error);
+      }
+    };
+    loadHistory();
   }, []);
 
   const statusConfig = {
@@ -274,6 +369,63 @@ const Monitoring = () => {
               </button>
             )}
           </div>
+        </div>
+
+        {/* SECCIÓN DE PREDICCIONES - NUEVA FASE 3 */}
+        <div className="bg-slate-900/50 rounded-2xl border border-blue-500/20 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <TrendingUp size={18} className="text-blue-400" />
+            <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+              Predicción de Llenado de Bodegas
+            </h2>
+            <span className="ml-auto text-xs text-blue-400/70 bg-blue-500/10 px-2 py-0.5 rounded-full">
+              ML en tiempo real
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {['plastico', 'vidrio', 'metal'].map(linea => {
+              const pred = getPredictionForLinea(linea);
+              if (pred) {
+                return (
+                  <PredictionCard
+                    key={linea}
+                    linea={linea}
+                    porcentaje={pred.porcentaje_actual}
+                    minutosRestantes={pred.minutos_restantes}
+                    estado={pred.estado}
+                    colorSemaforo={pred.color_semaforo}
+                  />
+                );
+              }
+              return (
+                <div key={linea} className="bg-slate-800/50 rounded-xl border border-slate-700 p-4 text-center">
+                  <h3 className="text-lg font-bold text-slate-400 capitalize">{linea}</h3>
+                  <p className="text-slate-500 text-sm mt-2">Esperando datos del modelo...</p>
+                  <div className="mt-3 flex justify-center">
+                    <div className="w-2 h-2 bg-slate-600 rounded-full animate-pulse" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Historial rápido de predicciones */}
+          {historicoPredictions.length > 0 && (
+            <div className="mt-4 pt-3 border-t border-slate-800">
+              <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
+                <Clock size={10} />
+                Últimas predicciones registradas
+              </p>
+              <div className="flex gap-2 text-xs">
+                {historicoPredictions.slice(0, 3).map((pred, idx) => (
+                  <span key={idx} className="text-slate-400">
+                    {new Date(pred.timestamp).toLocaleTimeString()}: {pred.minutos_restantes} min
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Banner de emergencia */}
