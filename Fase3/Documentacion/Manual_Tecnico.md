@@ -29,6 +29,7 @@ flowchart LR
 	subgraph IA[Servicios de visión artificial en GCP e2-medium]
 		C1[verificacion-epp\nFastAPI + YOLOv8]
 		C2[ml-plates\nFastAPI + EasyOCR]
+		C3[prediccion-bodega\nFastAPI + Gradient Boosting]
 	end
 
 	subgraph Visualizacion[Capa de visualización]
@@ -43,11 +44,13 @@ flowchart LR
 	A2 --> B2
 	B1 --> C1
 	B1 --> C2
+	B2 --> C3
 	B1 --> B4
 	B2 --> B4
 	B3 --> D1
 	B4 --> D2
 	B1 --> B3
+	C3 --> B1
 ```
 
 ### Flujo completo de datos
@@ -58,8 +61,10 @@ flowchart TD
 	S2 -->|MQTT / HTTP| B1[Backend]
 	B1 -->|Imagen EPP| I1[GCP e2-medium verificacion-epp]
 	B1 -->|Imagen placas| I2[GCP e2-medium ml-plates]
+	B2[Histórico de eventos] -->|consulta| I3[GCP e2-medium prediccion-bodega]
 	I1 --> B1
 	I2 --> B1
+	I3 -->|predicción| B1
 	B1 --> M1[(MongoDB)]
 	B1 --> WS[Socket.io]
 	WS --> F1[Frontend React]
@@ -113,13 +118,21 @@ La arquitectura de Fase 3 separa las tareas de visión artificial en máquinas G
 - **Endpoint principal**: `POST /detect-plate`
 - **Función**: recibe una imagen, extrae candidatos de placa, normaliza el texto y devuelve la mejor coincidencia.
 
-### 3.3 Backend central
+### 3.3 Máquina GCP e2-medium para predicción de bodega
+
+- **Servicio**: `prediccion-bodega`
+- **Tecnología**: FastAPI + Gradient Boosting Regressor (scikit-learn)
+- **Puerto expuesto**: `8000`
+- **Endpoint principal**: `POST /api/predict`
+- **Función**: recibe datos históricos y actuales de llenado, predice tiempo hasta capacidad plena y emite alertas preventivas por MQTT.
+
+### 3.4 Backend central
 
 - **Servicio**: Node.js + Express + TypeScript
 - **Puerto**: `4000`
 - **Función**: orquesta autenticación, persistencia, exposición de endpoints HTTP, eventos en tiempo real y conectividad con MQTT.
 
-### 3.4 Broker MQTT
+### 3.5 Broker MQTT
 
 - **Host**: mismo nodo de red del backend desplegado
 - **Puerto**: `1883`
@@ -163,6 +176,37 @@ El reconocimiento de placas se resuelve con OCR en vez de un detector entrenado 
 
 Este servicio se apoya en modelos preentrenados de OCR. No requiere una etapa de entrenamiento local; su valor agregado está en la normalización, filtrado inteligente y la integración con la validación en backend.
 
+### 4.3 Modelo de predicción de bodega
+
+El modelo de predicción de bodega (warehouse fill level forecasting) se basa en Gradient Boosting Regressor para estimar cuándo la bodega alcanzará capacidad plena o puntos críticos de llenado.
+
+#### Diseño funcional
+
+- Entrada: serie temporal de eventos de llenado, porcentaje actual de almacén, throughput en múltiples ventanas (15s, 30s, 60s, 120s).
+- Procesamiento: ingeniería de características (velocidad de llenado, aceleración, tasa de aprobación), inferencia con Gradient Boosting.
+- Salida: predicción de tiempo hasta llenado (en minutos), nivel de confianza y recomendación de acción (ej: "bodega llena en 23 minutos").
+- Regla de negocio: si la bodega está cerca de capacidad máxima, genera alerta preventiva para optimizar recogidas y evitar desbordamientos.
+
+#### Artefacto utilizado
+
+El servicio carga un modelo Gradient Boosting entrenado con joblib desde el directorio `models/` (versiones: `v3`, `v2` o `v1` por prioridad). El modelo incluye metadatos JSON con precisión (MAE) y características esperadas.
+
+Características de entrada:
+
+- `porcentaje_actual`: nivel actual de llenado (0-100%).
+- `capacidad_restante`: espacio disponible (100 - porcentaje_actual).
+- `throughput_15s`, `throughput_30s`, `throughput_60s`, `throughput_120s`: cantidad de eventos en cada ventana de tiempo.
+- `velocidad_llenado`: tasa de cambio de porcentaje por minuto.
+- `aceleracion`: cambio en velocidad de llenado.
+- `tasa_aprobacion_60s`, `tasa_aprobacion_120s`: proporción de eventos aprobados en ventanas.
+- `hora`, `minuto`, `tiempo_desde_inicio`: características temporales.
+
+#### Consideraciones de entrenamiento
+
+El modelo se entrena offline sobre datos históricos de eventos de llenado almacenados en MongoDB. El entrenamiento utiliza validación cruzada y métricas de error absoluto medio (MAE) para evaluar precisión. 
+
+La versión V3 es la más optimizada, incorporando ingeniería avanzada de características y ajuste de hiperparámetros. El servidor de predicción ejecuta en tiempo real a intervalos configurables (default 5 segundos), consultando MongoDB para datos actuales y emitiendo predicciones por MQTT y HTTP.
+
 ---
 
 ## 5. Funcionamiento de las nuevas funcionalidades
@@ -190,7 +234,17 @@ Este servicio se apoya en modelos preentrenados de OCR. No requiere una etapa de
 8. El backend emite `plate_update` por Socket.io.
 9. El frontend muestra la última detección y notifica si la placa no está autorizada.
 
-### 5.3 Flujo de sensores de planta
+### 5.3 Predicción de llenado de bodega
+
+1. El servicio de predicción consulta periódicamente (cada 5 segundos) datos históricos de MongoDB.
+2. Construye características de ingeniería: velocidad de llenado, aceleración, throughput en múltiples ventanas.
+3. El modelo Gradient Boosting predice tiempo hasta capacidad plena en minutos.
+4. Si la predicción está por debajo de un umbral crítico (ej: menos de 30 minutos), emite alerta por MQTT.
+5. El backend recibe la alerta y la registra como `prediction_alert` en MongoDB.
+6. El backend emite `bodega_update` por Socket.io con la predicción actual.
+7. El frontend muestra el indicador de tiempo hasta llenado y despliega notificación crítica si es inminente.
+
+### 5.4 Flujo de sensores de planta
 
 Los eventos de planta se publican por MQTT desde la Raspberry y se consumen en el backend para actualizar el estado global.
 
@@ -216,6 +270,7 @@ sequenceDiagram
 	participant B as Backend
 	participant E as GCP e2-medium EPP
 	participant P as GCP e2-medium Placas
+	participant D as GCP e2-medium Bodega
 	participant M as MongoDB
 	participant F as Frontend
 
@@ -231,6 +286,12 @@ sequenceDiagram
 	B->>B: POST /api/plates/validate
 	B->>M: Guardar detección de placa
 	B-->>F: plate_update
+
+	D->>M: consulta histórico
+	D->>D: predicción Gradient Boosting
+	D-->>B: alerta bodega (MQTT)
+	B->>M: Guardar predicción de bodega
+	B-->>F: bodega_update
 ```
 
 ---
@@ -284,6 +345,8 @@ sequenceDiagram
 - `POST /api/plates/validate`: valida placa contra lista autorizada.
 - `GET /api/plates/detections`: historial de detecciones.
 - `GET /api/plates/authorized`: lista de placas autorizadas.
+- `GET /api/bodega/prediction`: obtiene predicción actual de llenado de bodega.
+- `GET /api/bodega/alerts`: historial de alertas críticas de llenado.
 
 ### 7.2 Persistencia en MongoDB
 
@@ -293,6 +356,8 @@ Colecciones relevantes:
 - `authorized_plates`
 - `plate_detections`
 - `epp_verifications`
+- `bodega_predictions`
+- `bodega_alerts`
 - `sensor_events`
 - `classification_results`
 - `command_logs`
@@ -304,6 +369,7 @@ El backend mantiene un servidor Socket.io para notificaciones en tiempo real. Lo
 - `state_update`
 - `epp_update`
 - `plate_update`
+- `bodega_update`
 
 El frontend usa estos eventos para refrescar el tablero sin recargar la página.
 
@@ -330,6 +396,7 @@ El hook de socket del frontend genera notificaciones cuando ocurren eventos crí
 
 - incumplimiento de EPP,
 - placa no autorizada,
+- bodega cerca de capacidad plena,
 - sensor crítico de humo,
 - paro de emergencia,
 - bodega llena.
@@ -393,6 +460,7 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 - `MQTT_BROKER_URL`
 - `EPP_SERVICE_URL`
 - `PLATES_SERVICE_URL`
+- `BODEGA_SERVICE_URL`
 - `GRAFANA_API_KEY`
 
 ### GCP e2-medium EPP
@@ -406,6 +474,15 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 - `PORT`
 - `BACKEND_HOST`
 - `BACKEND_PORT`
+
+### GCP e2-medium bodega
+
+- `HOST`
+- `PORT`
+- `BODEGA_LINEA` (ej: plastico, vidrio, metal)
+- `PREDICTION_INTERVAL_SECONDS`
+- `MONGO_URI`
+- `MQTT_BROKER_URL`
 
 ### Raspberry
 
@@ -427,6 +504,6 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 
 ## 12. Conclusión
 
-La arquitectura extendida de EcoSort integra sensores, visión artificial, persistencia, visualización y alertas en tiempo real dentro de un flujo coherente de extremo a extremo. La separación en máquinas GCP `e2-medium` permite desacoplar el procesamiento de IA del backend principal, mientras que MongoDB, MQTT, Socket.io y Grafana completan la trazabilidad operativa y el monitoreo del sistema.
+La arquitectura extendida de EcoSort integra sensores, visión artificial, predicción de bodega, persistencia, visualización y alertas en tiempo real dentro de un flujo coherente de extremo a extremo. La separación en máquinas GCP `e2-medium` permite desacoplar el procesamiento de IA del backend principal, mientras que MongoDB, MQTT, Socket.io y Grafana completan la trazabilidad operativa y el monitoreo del sistema.
 
-Con esta versión, EcoSort ya no solo recolecta y clasifica eventos de planta, sino que también automatiza accesos, registra evidencias de seguridad, habilita monitoreo histórico y genera notificaciones accionables para el operador.
+Con esta versión, EcoSort ya no solo recolecta y clasifica eventos de planta, sino que también automatiza accesos, registra evidencias de seguridad, predice llenado de bodega, habilita monitoreo histórico y genera notificaciones accionables para el operador.
