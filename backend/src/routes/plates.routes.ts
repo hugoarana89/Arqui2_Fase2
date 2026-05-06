@@ -4,6 +4,11 @@ import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
+// Dispositivo (Raspberry) publica imagen para detección de placa
+router.post('/detect', (req, res, next) =>
+  PlatesController.detectPlate(req, res, next)
+);
+
 router.get('/authorized', authenticate, (req, res, next) =>
   PlatesController.getAuthorizedPlates(req, res, next)
 );

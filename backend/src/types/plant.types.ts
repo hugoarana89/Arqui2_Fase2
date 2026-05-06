@@ -81,6 +81,33 @@ export interface EppVerificationDocument {
 }
 
 // ──────────────────────────────────────────────
+//  Detección de placas (backend ↔ servicio ML de placas)
+// ──────────────────────────────────────────────
+export interface PlateDetectRequestDTO {
+  imageBase64: string;
+  source?: string;
+}
+
+export interface PlateServiceCandidateDTO {
+  text: string;
+  confidence: number;
+}
+
+export interface PlateServiceResponse {
+  success: boolean;
+  plate: string | null;
+  confidence?: number | null;
+  candidates?: PlateServiceCandidateDTO[];
+  message?: string;
+}
+
+export interface PlateValidateRequestDTO {
+  plate?: string | null;
+  confidence?: number | null;
+  source?: string;
+}
+
+// ──────────────────────────────────────────────
 //  Payloads HTTP de comandos (frontend → backend)
 // ──────────────────────────────────────────────
 export interface LineaComandoDTO {
