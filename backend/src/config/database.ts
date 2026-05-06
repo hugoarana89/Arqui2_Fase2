@@ -88,6 +88,15 @@ class DatabaseConnection {
       await this.db.collection('commands_log').createIndex({ userId: 1, sentAt: -1 });
       console.log('📦 Colección "commands_log" creada.');
     }
+
+    // ── epp_verifications ─────────────────────
+    if (!existing.includes('epp_verifications')) {
+      await this.db.createCollection('epp_verifications');
+      await this.db.collection('epp_verifications').createIndex({ createdAt: -1 });
+      await this.db.collection('epp_verifications').createIndex({ source: 1, createdAt: -1 });
+      await this.db.collection('epp_verifications').createIndex({ access_granted: 1, createdAt: -1 });
+      console.log('📦 Colección "epp_verifications" creada.');
+    }
   }
 
   getDb(): Db {

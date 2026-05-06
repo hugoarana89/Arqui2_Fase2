@@ -17,6 +17,11 @@ mosquitto/log/
 # =============================
 node_modules/
 .env
+backend/.env
+frontend/.env
+Fase3/verificacion-epp/.env
+Fase3/ml-plates/.env
+Fase3/prediccion-bodega/.env
 
 # =============================
 # DOCKER
@@ -41,4 +46,7 @@ raspberry/prueba-simple/.venv
 raspberry/prueba-simple/venv
 raspberry/prueba-serial/.venv
 raspberry/prueba-serial/venv
+Fase3/.venv
+.python-version
+__pycache__/
 

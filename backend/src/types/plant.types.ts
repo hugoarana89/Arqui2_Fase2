@@ -57,6 +57,57 @@ export interface MaterialResultadoPayload {
 export interface HumoPayload { timestamp: string; alerta_humo: boolean; umbral: number }
 
 // ──────────────────────────────────────────────
+//  Verificación EPP (backend ↔ servicio ML EPP)
+// ──────────────────────────────────────────────
+export interface EppVerifyRequestDTO {
+  imageBase64: string;
+  source?: string;
+}
+
+export interface EppServiceResponse {
+  access_granted: boolean;
+  missing_mandatory: string[];
+  detections: Record<string, number>;
+  annotated_image_base64: string;
+}
+
+export interface EppVerificationDocument {
+  _id?: ObjectId;
+  access_granted: boolean;
+  missing_mandatory: string[];
+  detections: Record<string, number>;
+  source: string;
+  createdAt: Date;
+}
+
+// ──────────────────────────────────────────────
+//  Detección de placas (backend ↔ servicio ML de placas)
+// ──────────────────────────────────────────────
+export interface PlateDetectRequestDTO {
+  imageBase64: string;
+  source?: string;
+}
+
+export interface PlateServiceCandidateDTO {
+  text: string;
+  confidence: number;
+}
+
+export interface PlateServiceResponse {
+  success: boolean;
+  plate: string | null;
+  confidence?: number | null;
+  candidates?: PlateServiceCandidateDTO[];
+  message?: string;
+}
+
+export interface PlateValidateRequestDTO {
+  plate?: string | null;
+  confidence?: number | null;
+  source?: string;
+}
+
+// ──────────────────────────────────────────────
 //  Payloads HTTP de comandos (frontend → backend)
 // ──────────────────────────────────────────────
 export interface LineaComandoDTO {
