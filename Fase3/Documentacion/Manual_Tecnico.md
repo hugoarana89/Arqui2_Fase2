@@ -2,7 +2,7 @@
 
 ## 1. Introducción
 
-Este documento describe la arquitectura extendida del sistema EcoSort y el funcionamiento de las funcionalidades incorporadas en la Fase 3. El sistema integra adquisición de datos desde sensores físicos, procesamiento en el backend, publicación de eventos en tiempo real, visualización operativa en el frontend y dos servicios de visión artificial desplegados en instancias EC2 separadas: verificación de EPP y reconocimiento de placas.
+Este documento describe la arquitectura extendida del sistema EcoSort y el funcionamiento de las funcionalidades incorporadas en la Fase 3. El sistema integra adquisición de datos desde sensores físicos, procesamiento en el backend, publicación de eventos en tiempo real, visualización operativa en el frontend y dos servicios de visión artificial desplegados en máquinas GCP `e2-medium` separadas: verificación de EPP y reconocimiento de placas.
 
 El objetivo de esta versión es automatizar y auditar el flujo completo de la planta, incluyendo acceso peatonal, acceso vehicular, monitoreo de variables críticas, notificaciones en tiempo real y visualizaciones históricas en Grafana.
 
@@ -26,7 +26,7 @@ flowchart LR
 		B4[MongoDB]
 	end
 
-	subgraph IA[Servicios de visión artificial en EC2]
+	subgraph IA[Servicios de visión artificial en GCP e2-medium]
 		C1[verificacion-epp\nFastAPI + YOLOv8]
 		C2[ml-plates\nFastAPI + EasyOCR]
 	end
@@ -56,8 +56,8 @@ flowchart LR
 flowchart TD
 	S1[Sensor o cámara] --> S2[Raspberry Pi]
 	S2 -->|MQTT / HTTP| B1[Backend]
-	B1 -->|Imagen EPP| I1[EC2 verificacion-epp]
-	B1 -->|Imagen placas| I2[EC2 ml-plates]
+	B1 -->|Imagen EPP| I1[GCP e2-medium verificacion-epp]
+	B1 -->|Imagen placas| I2[GCP e2-medium ml-plates]
 	I1 --> B1
 	I2 --> B1
 	B1 --> M1[(MongoDB)]
@@ -88,16 +88,16 @@ La solución se organiza en cinco capas principales:
 - **MQTT Broker**: transporte liviano de eventos de planta.
 - **Frontend**: consola web para operación y monitoreo.
 - **Grafana**: tableros para análisis de indicadores y series temporales.
-- **EC2 verificación EPP**: servicio FastAPI con YOLOv8.
-- **EC2 placas**: servicio FastAPI con EasyOCR.
+- **GCP e2-medium verificación EPP**: servicio FastAPI con YOLOv8.
+- **GCP e2-medium placas**: servicio FastAPI con EasyOCR.
 
 ---
 
-## 3. Despliegue en instancias EC2
+## 3. Despliegue en máquinas GCP e2-medium
 
-La arquitectura de Fase 3 separa las tareas de visión artificial en instancias EC2 independientes para aislar consumo de CPU, memoria y dependencias de ML.
+La arquitectura de Fase 3 separa las tareas de visión artificial en máquinas GCP `e2-medium` independientes para aislar consumo de CPU, memoria y dependencias de ML.
 
-### 3.1 Instancia EC2 para verificación de EPP
+### 3.1 Máquina GCP e2-medium para verificación de EPP
 
 - **Servicio**: `verificacion-epp`
 - **Tecnología**: FastAPI + Ultralytics YOLOv8
@@ -105,7 +105,7 @@ La arquitectura de Fase 3 separa las tareas de visión artificial en instancias 
 - **Endpoint principal**: `POST /api/ppe/analyze`
 - **Función**: recibe una imagen, detecta casco y otros elementos de protección, calcula si el acceso está permitido y devuelve imagen anotada.
 
-### 3.2 Instancia EC2 para reconocimiento de placas
+### 3.2 Máquina GCP e2-medium para reconocimiento de placas
 
 - **Servicio**: `ml-plates`
 - **Tecnología**: FastAPI + EasyOCR + OpenCV
@@ -172,7 +172,7 @@ Este servicio se apoya en modelos preentrenados de OCR. No requiere una etapa de
 1. La Raspberry detecta apertura de puerta.
 2. Captura una imagen de la persona en el acceso.
 3. La envía al backend en `POST /api/epp/verify`.
-4. El backend reenvía la imagen a la EC2 de EPP.
+4. El backend reenvía la imagen a la máquina GCP de EPP.
 5. El servicio de EPP retorna detecciones y estado de acceso.
 6. El backend guarda el resultado en MongoDB.
 7. El backend emite `epp_update` por Socket.io.
@@ -182,7 +182,7 @@ Este servicio se apoya en modelos preentrenados de OCR. No requiere una etapa de
 
 1. La Raspberry detecta vehículo o se ejecuta el cliente de pruebas sobre imágenes de `test_images`.
 2. La imagen se envía al backend en `POST /api/plates/detect`.
-3. El backend reenvía la imagen al servicio de placas en EC2.
+3. El backend reenvía la imagen al servicio de placas en GCP.
 4. El servicio OCR devuelve la placa más probable y su confianza.
 5. El cliente de pruebas o la Raspberry envían el resultado a `POST /api/plates/validate`.
 6. El backend valida la placa contra MongoDB.
@@ -214,8 +214,8 @@ Cada evento se persiste como histórico o actualiza el estado global en memoria,
 sequenceDiagram
 	participant R as Raspberry Pi
 	participant B as Backend
-	participant E as EC2 EPP
-	participant P as EC2 Placas
+	participant E as GCP e2-medium EPP
+	participant P as GCP e2-medium Placas
 	participant M as MongoDB
 	participant F as Frontend
 
@@ -252,7 +252,7 @@ sequenceDiagram
 
 1. Cámara del acceso peatonal.
 2. Raspberry captura imagen.
-3. Backend reenvía a EC2 EPP.
+3. Backend reenvía a GCP EPP.
 4. Backend guarda verificación en MongoDB.
 5. Socket.io emite actualización a frontend.
 
@@ -260,7 +260,7 @@ sequenceDiagram
 
 1. Cámara del acceso vehicular.
 2. Raspberry o cliente de pruebas captura imagen.
-3. Backend reenvía a EC2 placas.
+3. Backend reenvía a GCP placas.
 4. OCR devuelve placa candidata.
 5. Backend valida y guarda en MongoDB.
 6. Socket.io emite actualización a frontend.
@@ -395,12 +395,12 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 - `PLATES_SERVICE_URL`
 - `GRAFANA_API_KEY`
 
-### EC2 EPP
+### GCP e2-medium EPP
 
 - `HOST`
 - `PORT`
 
-### EC2 placas
+### GCP e2-medium placas
 
 - `HOST`
 - `PORT`
@@ -418,7 +418,7 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 ## 11. Consideraciones operativas
 
 - El backend debe desplegarse con acceso a MongoDB y al broker MQTT.
-- Las EC2 de visión artificial deben mantenerse accesibles desde la red del backend.
+- Las máquinas GCP de visión artificial deben mantenerse accesibles desde la red del backend.
 - El frontend requiere autenticación para conectarse al socket del backend.
 - Grafana necesita la API key configurada para consultar el backend.
 - Los modelos de EPP y placas deben validarse con imágenes reales representativas antes de pasar a producción.
@@ -427,6 +427,6 @@ De este modo se verifica tanto la detección como la persistencia en base de dat
 
 ## 12. Conclusión
 
-La arquitectura extendida de EcoSort integra sensores, visión artificial, persistencia, visualización y alertas en tiempo real dentro de un flujo coherente de extremo a extremo. La separación en instancias EC2 permite desacoplar el procesamiento de IA del backend principal, mientras que MongoDB, MQTT, Socket.io y Grafana completan la trazabilidad operativa y el monitoreo del sistema.
+La arquitectura extendida de EcoSort integra sensores, visión artificial, persistencia, visualización y alertas en tiempo real dentro de un flujo coherente de extremo a extremo. La separación en máquinas GCP `e2-medium` permite desacoplar el procesamiento de IA del backend principal, mientras que MongoDB, MQTT, Socket.io y Grafana completan la trazabilidad operativa y el monitoreo del sistema.
 
 Con esta versión, EcoSort ya no solo recolecta y clasifica eventos de planta, sino que también automatiza accesos, registra evidencias de seguridad, habilita monitoreo histórico y genera notificaciones accionables para el operador.
