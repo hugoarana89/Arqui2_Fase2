@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { useSocket } from '../hooks/useSocket';
 import { usePredictions } from '../hooks/usePredictions';
-import { BodegaPrediction } from '../components/BodegaPrediction';
 import { eppService, platesService } from '../services/plant.service';
 import type { EppVerification, PlateDetection } from '../types/plant.types';
 import axios from 'axios';
@@ -255,7 +254,7 @@ const Monitoring = () => {
     clearNotifications,
   } = useSocket();
 
-  const { predictions, getPredictionForLinea } = usePredictions();
+  const { getPredictionForLinea } = usePredictions();
   const [now, setNow] = useState(new Date());
   const [initialEpp, setInitialEpp] = useState<EppVerification | null>(null);
   const [initialPlate, setInitialPlate] = useState<PlateDetection | null>(null);
@@ -298,31 +297,11 @@ const Monitoring = () => {
   }, []);
 
   const statusConfig = {
-    connected: {
-      color: 'text-emerald-400',
-      bg: 'bg-emerald-500/10 border-emerald-500/30',
-      icon: <Wifi size={14} />,
-      label: 'Conectado',
-    },
-    connecting: {
-      color: 'text-amber-400',
-      bg: 'bg-amber-500/10 border-amber-500/30',
-      icon: <RefreshCw size={14} className="animate-spin" />,
-      label: 'Conectando...',
-    },
-    disconnected: {
-      color: 'text-slate-400',
-      bg: 'bg-slate-800 border-slate-700',
-      icon: <WifiOff size={14} />,
-      label: 'Desconectado',
-    },
-    error: {
-      color: 'text-red-400',
-      bg: 'bg-red-500/10 border-red-500/30',
-      icon: <WifiOff size={14} />,
-      label: 'Error',
-    },
-  }[socketStatus];
+  connected: { color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/30', icon: <Wifi size={14} />, label: 'Conectado' },
+  connecting: { color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/30', icon: <RefreshCw size={14} className="animate-spin" />, label: 'Conectando...' },
+  disconnected: { color: 'text-slate-400', bg: 'bg-slate-800 border-slate-700', icon: <WifiOff size={14} />, label: 'Desconectado' },
+  error: { color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/30', icon: <WifiOff size={14} />, label: 'Error' },
+}[socketStatus] || { color: 'text-slate-400', bg: 'bg-slate-800 border-slate-700', icon: <WifiOff size={14} />, label: 'Desconectado' };
 
   const hasAlerts =
     s.alerta_humo ||
