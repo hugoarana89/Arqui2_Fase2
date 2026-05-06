@@ -2,12 +2,28 @@ import type { Request, Response, NextFunction } from 'express';
 import AuthorizedPlate from '../models/authorizedPlate.model.js';
 import PlateDetection from '../models/plateDetection.model.js';
 import { getSocketServer } from '../config/socket.js';
+import { detectPlateImage } from '../services/plates.service.js';
+import type { PlateDetectRequestDTO, PlateValidateRequestDTO } from '../types/plant.types.js';
 
 const normalizePlate = (plate: string): string => {
   return plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
 };
 
 class PlatesController {
+  async detectPlate(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { imageBase64 } = req.body as PlateDetectRequestDTO;
+      const result = await detectPlateImage(imageBase64);
+
+      res.status(200).json({
+        status: 'success',
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async getAuthorizedPlates(_req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const plates = await AuthorizedPlate.findAll();
@@ -85,12 +101,12 @@ async updateAuthorizedPlate(req: Request, res: Response, next: NextFunction): Pr
 
   async validatePlate(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { plate, confidence } = req.body;
+      const { plate, confidence, source } = req.body as PlateValidateRequestDTO;
 
       let status: 'autorizada' | 'no_autorizada' | 'no_detectada' = 'no_detectada';
       let normalizedPlate: string | null = null;
 
-      if (plate) {
+      if (typeof plate === 'string' && plate.trim()) {
         normalizedPlate = normalizePlate(plate);
 
         const authorized = await AuthorizedPlate.findActiveByPlate(normalizedPlate);
@@ -101,7 +117,7 @@ async updateAuthorizedPlate(req: Request, res: Response, next: NextFunction): Pr
         plate: normalizedPlate,
         status,
         confidence: typeof confidence === 'number' ? confidence : null,
-        source: 'raspberry',
+        source: source ?? 'raspberry',
       });
 
       const io = getSocketServer();

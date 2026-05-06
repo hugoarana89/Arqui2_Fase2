@@ -100,6 +100,15 @@ async function bootstrap(): Promise<void> {
     console.log(`   GET   /api/epp/verifications        🔒`);
     console.log(`   GET   /api/epp/health`);
 
+    console.log(`\n🚗 Endpoints PLATES:`);
+    console.log(`   POST  /api/plates/detect            (dispositivo)`);
+    console.log(`   POST  /api/plates/validate          (dispositivo)`);
+    console.log(`   GET   /api/plates/authorized        🔒`);
+    console.log(`   POST  /api/plates/authorized        🔒`);
+    console.log(`   PUT   /api/plates/authorized/:id    🔒`);
+    console.log(`   DELETE /api/plates/authorized/:id   🔒`);
+    console.log(`   GET   /api/plates/detections        🔒`);
+
     console.log(`\n🔌 WebSocket en ws://localhost:${PORT} (evento: state_update)`);
   });
 }
