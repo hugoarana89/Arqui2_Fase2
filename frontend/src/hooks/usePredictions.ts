@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import io, { Socket } from 'socket.io-client';
+import io from 'socket.io-client';
 
 interface Prediction {
   linea: string;
@@ -12,30 +12,52 @@ interface Prediction {
 
 export const usePredictions = () => {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
-    const socketUrl = API_URL.replace('/api', '');
-    
+    const WS_URL = import.meta.env.VITE_WS_URL || 'ws://172.17.0.1:4000';
     const token = localStorage.getItem('token');
-    const newSocket = io(socketUrl, {
+    
+    if (!token) {
+      console.log('⚠️ No hay token de autenticación. Inicia sesión primero.');
+      return;
+    }
+    
+    console.log('🔌 Conectando WebSocket a:', WS_URL);
+    
+    const socket = io(WS_URL, {
       auth: { token },
-      transports: ['websocket']
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000
     });
 
-    newSocket.on('prediction_update', (data: Prediction) => {
+    socket.on('connect', () => {
+      console.log('✅ WebSocket conectado');
+      setIsConnected(true);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('❌ WebSocket error:', err.message);
+      setIsConnected(false);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('❌ WebSocket desconectado:', reason);
+      setIsConnected(false);
+    });
+
+    socket.on('prediction_update', (data: Prediction) => {
+      console.log('📡 Predicción recibida:', data);
       setPredictions(prev => {
-        // Mantener solo últimas 50 predicciones
-        const newList = [data, ...prev.filter(p => p.linea !== data.linea)];
-        return newList.slice(0, 50);
+        const filtered = prev.filter(p => p.linea !== data.linea);
+        return [data, ...filtered].slice(0, 50);
       });
     });
 
-    setSocket(newSocket);
-
     return () => {
-      newSocket.disconnect();
+      socket.disconnect();
     };
   }, []);
 
@@ -43,5 +65,5 @@ export const usePredictions = () => {
     return predictions.find(p => p.linea === linea);
   };
 
-  return { predictions, getPredictionForLinea };
+  return { predictions, getPredictionForLinea, isConnected };
 };
