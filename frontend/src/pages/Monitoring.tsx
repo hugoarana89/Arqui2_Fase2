@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { useSocket } from '../hooks/useSocket';
 import { usePredictions } from '../hooks/usePredictions';
-import { BodegaPrediction } from '../components/BodegaPrediction';
 import { eppService, platesService } from '../services/plant.service';
 import type { EppVerification, PlateDetection } from '../types/plant.types';
 import axios from 'axios';
@@ -255,7 +254,7 @@ const Monitoring = () => {
     clearNotifications,
   } = useSocket();
 
-  const { predictions, getPredictionForLinea } = usePredictions();
+  const { getPredictionForLinea } = usePredictions();
   const [now, setNow] = useState(new Date());
   const [initialEpp, setInitialEpp] = useState<EppVerification | null>(null);
   const [initialPlate, setInitialPlate] = useState<PlateDetection | null>(null);
@@ -297,7 +296,7 @@ const Monitoring = () => {
     loadHistory();
   }, []);
 
-  const statusConfig = {
+  const statusConfig = ({
     connected: {
       color: 'text-emerald-400',
       bg: 'bg-emerald-500/10 border-emerald-500/30',
@@ -322,7 +321,12 @@ const Monitoring = () => {
       icon: <WifiOff size={14} />,
       label: 'Error',
     },
-  }[socketStatus];
+  } as Record<string, { color: string; bg: string; icon: React.ReactNode; label: string }>)[socketStatus] ?? {
+    color: 'text-slate-400',
+    bg: 'bg-slate-800 border-slate-700',
+    icon: <WifiOff size={14} />,
+    label: 'Desconocido',
+  };
 
   const hasAlerts =
     s.alerta_humo ||
