@@ -22,7 +22,7 @@ const TOPICS = [
   'ecosort/clasificador/material/detectado',
   'ecosort/clasificador/material/resultado',
   'ecosort/seguridad/alarma/humo',
-  'ecosort/predicciones/bodega/+',  // ← NUEVO: predicciones de bodegas
+  'ecosort/predicciones/bodega/+',
 ] as const;
 
 type Topic = typeof TOPICS[number];
@@ -87,4 +87,5 @@ const topicHandlers: Record<Topic, (payload: any) => Promise<void>> = {
   'ecosort/clasificador/material/detectado':  handleMaterialDetectado,
   'ecosort/clasificador/material/resultado':  handleMaterialResultado,
   'ecosort/seguridad/alarma/humo':            handleAlarmaHumo,
+  'ecosort/predicciones/bodega/+':            handlePrediccionBodega,
 };

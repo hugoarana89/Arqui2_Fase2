@@ -5,7 +5,6 @@ export const handlePrediccionBodega = async (payload: any) => {
   try {
     console.log(`📊 Predicción recibida:`, payload);
     
-    // Guardar en MongoDB
     const db = DatabaseConnection.getInstance().getDb();
     const collection = db.collection('bodega_predictions');
     
@@ -20,7 +19,6 @@ export const handlePrediccionBodega = async (payload: any) => {
       createdAt: new Date()
     });
     
-    // Emitir via WebSocket para el frontend
     const io = getSocketServer();
     if (io) {
       io.emit('prediction_update', payload);
